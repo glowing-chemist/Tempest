@@ -48,7 +48,7 @@ int main()
                                        "./Assets/Textures/bluecloud_rt.jpg",
                                        "./Assets/Textures/bluecloud_lf.jpg" };
     testScene.loadSkybox(skybox, &eng);
-    testScene.setShadowingLight(float3(-150.0f, 100.0f, -150.0f), float3(0.0f, -0.5f, 1.0f), float3(0.0f, -1.0f, 0.0f));
+    testScene.setShadowingLight(float3(-150.0f, 200.0f, -150.0f), float3(0.0f, -0.5f, 1.0f), float3(0.0f, -1.0f, 0.0f));
 
     const SceneID player1MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
     const SceneID player2MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
