@@ -1,6 +1,7 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include "Engine/StaticMesh.h"
 #include "Engine/Scene.h"
 
 
@@ -19,7 +20,25 @@ public:
 
     void update(const Controller*, Engine*);
 
+    struct HitBox
+    {
+        HitBox() :
+            mOrientatedBoundingBox(),
+            mVelocity(0.0f, 0.0f, 0.0f)
+        {}
+
+        OBB mOrientatedBoundingBox;
+        float3 mVelocity;
+    };
+
+    const std::vector<HitBox>& getHitBoxes() const
+    {
+
+    }
+
 private:
+
+    void updateHitBoxes(Engine *eng);
 
     InstanceID mID;
     MeshInstance* mInstance;
@@ -34,6 +53,8 @@ private:
         Jumping
     };
     State mCurrentState;
+
+    std::vector<HitBox> mHitBoxes;
 };
 
 
