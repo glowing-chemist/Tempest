@@ -23,6 +23,7 @@ Player::Player(InstanceID id, MeshInstance* inst) :
         HitBox box{};
         box.mOrientatedBoundingBox = bone.mOBB;
         box.mVelocity = float3{0.0f, 0.0f, 0.0f};
+        mHitBoxes.push_back(box);
     }
 
 }

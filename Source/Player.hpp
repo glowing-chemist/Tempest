@@ -33,7 +33,7 @@ public:
 
     const std::vector<HitBox>& getHitBoxes() const
     {
-
+        return mHitBoxes;
     }
 
 private:
