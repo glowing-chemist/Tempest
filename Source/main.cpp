@@ -8,6 +8,47 @@
 #include "Controller.hpp"
 #include "Player.hpp"
 
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
+static bool processed = true;
+static bool ready = false;
+static std::mutex s_graphics_context_mutex;
+static std::condition_variable s_graphics_cv;
+
+void processFrame(Engine* eng, bool* firstFrame, bool* shouldClose)
+{
+    while(!(*shouldClose))
+    {
+        std::unique_lock lock(s_graphics_context_mutex);
+        s_graphics_cv.wait(lock, []{return ready;});
+        ready = false;
+
+        if(!(*firstFrame))
+            eng->startFrame();
+
+        eng->getScene()->computeBounds(MeshType::Dynamic);
+
+        eng->recordScene();
+        eng->render();
+        eng->swap();
+        eng->endFrame();
+
+        processed = true;
+
+        lock.unlock();
+        s_graphics_cv.notify_one();
+    }
+
+    std::unique_lock lock(s_graphics_context_mutex);
+    s_graphics_cv.wait(lock, []{return ready;});
+    processed = true;
+    lock.unlock();
+    s_graphics_cv.notify_one();
+}
+
+
 int main()
 {
     glfwInit();
@@ -17,13 +58,14 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // only resize explicitly
     auto* window = glfwCreateWindow(1920, 1080, "Tempest", nullptr, nullptr);
 
-    Engine eng(window);
+    Engine* eng = new Engine(window);
 
-    eng.startFrame();
+    eng->startFrame();
     bool firstFrame = true;
+    bool shouldClose = false;
 
     StaticMesh* firstMesh = new StaticMesh(
-        "Assets//Meshes//Player.fbx",
+        "Assets//Meshes//Player2.fbx",
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
         VertexAttributes::Normals
@@ -47,7 +89,7 @@ int main()
                                        "./Assets/Textures/bluecloud_dn.jpg",
                                        "./Assets/Textures/bluecloud_rt.jpg",
                                        "./Assets/Textures/bluecloud_lf.jpg" };
-    testScene.loadSkybox(skybox, &eng);
+    testScene.loadSkybox(skybox, eng);
     testScene.setShadowingLight(float3(-150.0f, 200.0f, -150.0f), float3(0.0f, -0.5f, 1.0f), float3(0.0f, -1.0f, 0.0f));
 
     const SceneID player1MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
@@ -58,61 +100,98 @@ int main()
     const InstanceID player2Instance = testScene.addMeshInstance(player2MeshID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
     const InstanceID groundInstance = testScene.addMeshInstance(planeID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
 
-    testScene.loadMaterials(&eng);
-    testScene.uploadData(&eng);
+    testScene.loadMaterials(eng);
+    testScene.uploadData(eng);
 
-    eng.setScene(&testScene);
+    eng->setScene(&testScene);
 
-    eng.getScene()->computeBounds(MeshType::Dynamic);
-    eng.getScene()->computeBounds(MeshType::Static);
+    eng->getScene()->computeBounds(MeshType::Dynamic);
+    eng->getScene()->computeBounds(MeshType::Static);
 
-    eng.registerPass(PassType::Shadow);
-    eng.registerPass(PassType::GBuffer);
-    eng.registerPass(PassType::DeferredPBRIBL);
-    eng.registerPass(PassType::DFGGeneration);
-    eng.registerPass(PassType::Skybox);
-    eng.registerPass(PassType::ConvolveSkybox);
-    eng.registerPass(PassType::Composite);
-    eng.registerPass(PassType::Animation);
-
+    eng->registerPass(PassType::Shadow);
+    eng->registerPass(PassType::DepthPre);
+    eng->registerPass(PassType::ForwardIBL);
+    eng->registerPass(PassType::DFGGeneration);
+    eng->registerPass(PassType::Skybox);
+    eng->registerPass(PassType::ConvolveSkybox);
+    eng->registerPass(PassType::Composite);
+    eng->registerPass(PassType::Animation);
+    //eng.registerPass(PassType::LineariseDepth);
+    //eng.registerPass(PassType::TAA);
 #ifndef NDEBUG
-    eng.registerPass(PassType::DebugAABB);
+    eng->registerPass(PassType::DebugAABB);
 #endif
 
-    Camera& camera = eng.getCurrentSceneCamera();
+    Camera& camera = eng->getCurrentSceneCamera();
     camera.setPosition({150.0f, 50.0f, -10.0f});
     camera.setDirection({-1.0f, 0.0f, 0.0f});
+    camera.setFarPlane(200.0f);
 
     Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance));
     Player* player2 = new Player(player2Instance, testScene.getMeshInstance(player2Instance));
 
-    while (!glfwWindowShouldClose(window))
+    size_t frameCount = 0;
+
+    std::thread graphics_thread(processFrame, eng, &firstFrame, &shouldClose);
+
+    while (!shouldClose)
     {
         glfwPollEvents();
+
+        shouldClose = glfwWindowShouldClose(window);
 
         controller1->update();
         controller2->update();
 
-        player1->update(controller1, &eng);
-        player2->update(controller2, &eng);
+        {
+            std::unique_lock lock(s_graphics_context_mutex);
+            s_graphics_cv.wait(lock, []{return processed;});
+            processed = false;
 
-        //camera.moveLeft(-controller->getLeftAxisX());
-        //camera.moveForward(-controller->getLeftAxisY());
-        //camera.rotatePitch(-controller->getRighAxisY());
-        //camera.rotateYaw(-controller->getRighAxisX());
+            firstFrame = frameCount == 0;
 
-        if (!firstFrame)
-            eng.startFrame();
+            // These update the scene in the engine so need to be guarded with a mutex.
+            player1->update(controller1, eng);
+            player2->update(controller2, eng);
 
-        firstFrame = false;
+            ready = true;
+            lock.unlock();
+            s_graphics_cv.notify_one();
+        }
 
-        eng.getScene()->computeBounds(MeshType::Dynamic);
+        if(frameCount > 200)
+        {
+            const std::vector<Player::HitBox>& p1HitBoxes = player1->getHitBoxes();
+            const std::vector<Player::HitBox>& p2HitBoxes = player2->getHitBoxes();
 
-        eng.recordScene();
-        eng.render();
-        eng.swap();
-        eng.endFrame();
+            for(const auto& b1 : p1HitBoxes)
+            {
+                for(const auto& b2 : p2HitBoxes)
+                {
+                    if(b1.mOrientatedBoundingBox.intersects(b2.mOrientatedBoundingBox))
+                    {
+                        const float3 player1Velocity = b1.mVelocity;
+                        const float player1Speed = glm::length(player1Velocity);
+                        const float3 player2Velocity = b2.mVelocity;
+                        const float player2Speed = glm::length(player2Velocity);
+
+                        if(player1Speed > player2Speed)
+                        {
+                            player2->applyForce(player1Velocity);
+                        }
+                        else
+                        {
+                            player1->applyForce(player2Velocity);
+                        }
+                    }
+                }
+            }
+        }
+
+        ++frameCount;
     }
+
+    graphics_thread.join();
 
     delete firstMesh;
     delete floor;

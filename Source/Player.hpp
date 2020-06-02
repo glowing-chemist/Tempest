@@ -6,7 +6,7 @@
 
 
 static constexpr const char kWalkingAnimation[] = "Armature|Walk";
-static constexpr const char kJumpAnimation[] = "Armature|Jump";
+static constexpr const char kJumpAnimation[] = "Armature|Kick";
 
 class Controller;
 
@@ -19,6 +19,11 @@ public:
     ~Player() = default;
 
     void update(const Controller*, Engine*);
+
+    void applyForce(const float3& dir)
+    {
+        mPosition += dir;
+    }
 
     struct HitBox
     {
@@ -50,11 +55,14 @@ private:
     {
         Resting,
         Walking,
-        Jumping
+        Jumping,
+        Kicking
     };
     State mCurrentState;
 
     std::vector<HitBox> mHitBoxes;
+
+    size_t mCoolDownCounter;
 };
 
 
