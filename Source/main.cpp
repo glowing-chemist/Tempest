@@ -140,8 +140,8 @@ int main()
 
         shouldClose = glfwWindowShouldClose(window);
 
-        controller1->update();
-        controller2->update();
+        controller1->update(window);
+        controller2->update(window);
 
         {
             std::unique_lock lock(s_graphics_context_mutex);

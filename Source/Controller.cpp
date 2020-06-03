@@ -1,20 +1,62 @@
 #include "Controller.hpp"
 #include <cstdio>
 #include <cassert>
+#include <cstring>
 
 
 Controller::Controller(const int id) : mID(id)
 {
     const int present = glfwJoystickPresent(mID);
-    assert(present == GLFW_TRUE);
+    if(present == GLFW_TRUE)
+        mHardwareController = true;
+    else
+    {
+        mHardwareController = false;
+    }
 
     mName = glfwGetJoystickName(mID);
     printf("Using joystick %s\n", mName);
 }
 
 
-void Controller::update()
+Controller::~Controller()
 {
-    mAxis = glfwGetJoystickAxes(mID, &mAxisCount);
-    mButtons = glfwGetJoystickButtons(mID, &mButtonCount);
+
+}
+
+
+void Controller::update(GLFWwindow* window)
+{
+    if(mHardwareController)
+    {
+        int axisCount;
+        const float* axis = glfwGetJoystickAxes(mID, &axisCount);
+
+        int buttonCount;
+        const unsigned char* buttons = glfwGetJoystickButtons(mID, &buttonCount);
+
+        std::memcpy(mAxis, axis, sizeof(float) * 6);
+        std::memcpy(mButtons, buttons, sizeof(unsigned char) * 8);
+    }
+    else
+    {
+        for(uint32_t i = 0; i < 6; ++i)
+            mAxis[i] = 0.0f;
+        for(uint32_t i = 0; i < 8; ++i)
+            mButtons[i] = 0;
+
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_W : GLFW_KEY_I) == GLFW_PRESS)
+            mAxis[1] = -1.0f;
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_S : GLFW_KEY_K) == GLFW_PRESS)
+            mAxis[1] = 1.0f;
+
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_A : GLFW_KEY_J) == GLFW_PRESS)
+            mAxis[0] = -1.0f;
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_D : GLFW_KEY_L) == GLFW_PRESS)
+            mAxis[0] = 1.0f;
+
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_Q : GLFW_KEY_U) == GLFW_PRESS)
+            mButtons[0] = GLFW_PRESS;
+
+    }
 }

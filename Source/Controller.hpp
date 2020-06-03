@@ -8,10 +8,10 @@ class Controller
 public:
 
     Controller(const int joyStickID);
-    ~Controller() = default;
+    ~Controller();
 
 
-    void update();
+    void update(GLFWwindow *window);
 
     float getLeftAxisX() const
     {
@@ -46,11 +46,11 @@ private:
     const char* mName;
     int mID;
 
-    const float* mAxis;
-    int mAxisCount;
+    float mAxis[6];
 
-    const unsigned char* mButtons;
-    int mButtonCount;
+    unsigned char mButtons[8];
+
+    bool mHardwareController;
 };
 
 

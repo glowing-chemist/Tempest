@@ -100,7 +100,7 @@ void Player::update(const Controller* controller, Engine* eng)
 
 void Player::updateHitBoxes(Engine* eng)
 {
-    const std::vector<Engine::AnimationEntry> activeAnims = eng->getActiveAnimations();
+    const std::vector<Engine::AnimationEntry>& activeAnims = eng->getActiveAnimations();
     bool foundAnim = false;
     const std::vector<StaticMesh::Bone>& skeleton = mInstance->mMesh->getSkeleton();
     for(const auto& anim : activeAnims)
