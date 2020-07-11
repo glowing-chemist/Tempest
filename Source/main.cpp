@@ -7,46 +7,7 @@
 
 #include "Controller.hpp"
 #include "Player.hpp"
-
-#include <condition_variable>
-#include <mutex>
-#include <thread>
-
-static bool processed = true;
-static bool ready = false;
-static std::mutex s_graphics_context_mutex;
-static std::condition_variable s_graphics_cv;
-
-void processFrame(Engine* eng, bool* firstFrame, bool* shouldClose)
-{
-    while(!(*shouldClose))
-    {
-        std::unique_lock lock(s_graphics_context_mutex);
-        s_graphics_cv.wait(lock, []{return ready;});
-        ready = false;
-
-        if(!(*firstFrame))
-            eng->startFrame();
-
-        eng->getScene()->computeBounds(MeshType::Dynamic);
-
-        eng->recordScene();
-        eng->render();
-        eng->swap();
-        eng->endFrame();
-
-        processed = true;
-
-        lock.unlock();
-        s_graphics_cv.notify_one();
-    }
-
-    std::unique_lock lock(s_graphics_context_mutex);
-    s_graphics_cv.wait(lock, []{return ready;});
-    processed = true;
-    lock.unlock();
-    s_graphics_cv.notify_one();
-}
+#include "RenderThread.hpp"
 
 
 int main()
@@ -68,14 +29,24 @@ int main()
         "Assets//Meshes//Player2.fbx",
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
-        VertexAttributes::Normals
+        VertexAttributes::Normals |
+        VertexAttributes::Albedo
     );
 
     StaticMesh* floor = new StaticMesh(
         "Assets//Meshes//plane.fbx",
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
-        VertexAttributes::Normals
+        VertexAttributes::Normals |
+        VertexAttributes::Albedo
+    );
+
+    StaticMesh* cube = new StaticMesh(
+        "Assets//Meshes//cube.fbx",
+        VertexAttributes::Position4 |
+        VertexAttributes::TextureCoordinates |
+        VertexAttributes::Normals |
+        VertexAttributes::Albedo
     );
 
     Controller* controller1 = new Controller(GLFW_JOYSTICK_1);
@@ -95,10 +66,14 @@ int main()
     const SceneID player1MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
     const SceneID player2MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
     const SceneID planeID = testScene.addMesh(*floor, MeshType::Static);
+    const SceneID cubeID = testScene.addMesh(*cube, MeshType::Static);
 
     const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
     const InstanceID player2Instance = testScene.addMeshInstance(player2MeshID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
-    const InstanceID groundInstance = testScene.addMeshInstance(planeID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
+    const InstanceID groundInstance =  testScene.addMeshInstance(planeID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
+    const InstanceID cubeInstance =    testScene.addMeshInstance(cubeID, glm::scale(float3(30.0f, 100.0f, 30.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
+
+    RayTracingScene rtScene(&testScene);
 
     testScene.loadMaterials(eng);
     testScene.uploadData(eng);
@@ -109,15 +84,15 @@ int main()
     eng->getScene()->computeBounds(MeshType::Static);
 
     eng->registerPass(PassType::Shadow);
-    eng->registerPass(PassType::DepthPre);
-    eng->registerPass(PassType::ForwardIBL);
+    eng->registerPass(PassType::GBuffer);
+    eng->registerPass(PassType::DeferredPBRIBL);
     eng->registerPass(PassType::DFGGeneration);
     eng->registerPass(PassType::Skybox);
     eng->registerPass(PassType::ConvolveSkybox);
     eng->registerPass(PassType::Composite);
     eng->registerPass(PassType::Animation);
-    //eng.registerPass(PassType::LineariseDepth);
-    //eng.registerPass(PassType::TAA);
+    //eng->registerPass(PassType::LineariseDepth);
+    //eng->registerPass(PassType::TAA);
 #ifndef NDEBUG
     eng->registerPass(PassType::DebugAABB);
 #endif
@@ -125,14 +100,14 @@ int main()
     Camera& camera = eng->getCurrentSceneCamera();
     camera.setPosition({150.0f, 50.0f, -10.0f});
     camera.setDirection({-1.0f, 0.0f, 0.0f});
-    camera.setFarPlane(200.0f);
+    camera.setFarPlane(50.0f);
 
-    Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance));
-    Player* player2 = new Player(player2Instance, testScene.getMeshInstance(player2Instance));
+    Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance), float3(0.0f, 0.0f, -60.0f), float3(0.0f, 0.0f, -1.0f));
+    Player* player2 = new Player(player2Instance, testScene.getMeshInstance(player2Instance), float3(0.0f, 0.0f, 60.0f), float3(0.0f, 0.0f, 1.0f));
 
     size_t frameCount = 0;
 
-    std::thread graphics_thread(processFrame, eng, &firstFrame, &shouldClose);
+    RenderThread renderThread(eng);
 
     while (!shouldClose)
     {
@@ -144,23 +119,23 @@ int main()
         controller2->update(window);
 
         {
-            std::unique_lock lock(s_graphics_context_mutex);
-            s_graphics_cv.wait(lock, []{return processed;});
-            processed = false;
+            std::unique_lock lock = renderThread.lock();
 
             firstFrame = frameCount == 0;
+
+            renderThread.update(shouldClose, firstFrame);
 
             // These update the scene in the engine so need to be guarded with a mutex.
             player1->update(controller1, eng);
             player2->update(controller2, eng);
 
-            ready = true;
-            lock.unlock();
-            s_graphics_cv.notify_one();
+            renderThread.unlock(lock);
         }
 
-        if(frameCount > 200)
+        //if(frameCount > 200)
         {
+#if 0 // Enable for hacky collision detection.
+
             const std::vector<Player::HitBox>& p1HitBoxes = player1->getHitBoxes();
             const std::vector<Player::HitBox>& p2HitBoxes = player2->getHitBoxes();
 
@@ -186,12 +161,38 @@ int main()
                     }
                 }
             }
+#endif
+
+#if 1 // View detection.
+
+            const float3& player1Pos = player1->getPosition() + float3(0.0f, 10.0f, 0.0f);;
+            const float3 player1Dir = glm::normalize(player1->getDirection());
+
+            const float3& player2pos = player2->getPosition() + float3(0.0f, 10.0f, 0.0f);
+            const float3& player2Dir = glm::normalize(player2->getDirection());
+
+            const float3 player1ToPlayer2 = glm::normalize(player2pos - player1Pos);
+            const float3 pplayer2ToPlayer1 = -player1ToPlayer2;
+
+            const bool visible = rtScene.isVisibleFrom(player1Pos, player2pos);
+
+            if(acos(glm::dot(player1Dir, player1ToPlayer2)) <= 0.78f)
+            {
+                if(visible)
+                    player2->applyForce(player1Dir / 10.0f);
+            }
+
+            if(acos(glm::dot(player2Dir, pplayer2ToPlayer1)) <= 0.78f)
+            {
+                if(visible)
+                    player1->applyForce(player2Dir / 10.0f);
+            }
+#endif
+
         }
 
         ++frameCount;
     }
-
-    graphics_thread.join();
 
     delete firstMesh;
     delete floor;

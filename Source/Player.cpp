@@ -7,11 +7,11 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-Player::Player(InstanceID id, MeshInstance* inst) :
+Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float3 &dir) :
     mID(id),
     mInstance(inst),
-    mPosition(0.0f, 0.0f, 0.0f),
-    mDirection(0.0f, 0.0f, 1.0f),
+    mPosition(pos),
+    mDirection(dir),
     mCurrentState(Resting),
     mHitBoxes{},
     mCoolDownCounter{0}

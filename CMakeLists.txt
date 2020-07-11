@@ -8,7 +8,8 @@ set(BELL_PATH "../Bell")
     
 add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Bell)
     
-include_directories(	"${BELL_PATH}/Include"      
+include_directories(	"${BELL_PATH}"
+    "${BELL_PATH}/Include"
             		"${BELL_PATH}/Source"    
         		"${BELL_PATH}/ThirdParty/GLFW3/glfw-3.2.1/include"    
                         "${BELL_PATH}/ThirdParty/assimp-4.1.0/include"    
@@ -21,5 +22,5 @@ include_directories(	"${BELL_PATH}/Include"
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_BINARY_DIR}/")
 
 
-add_executable(TEMPEST Source/main.cpp Source/Player.cpp Source/Controller.cpp)
+add_executable(TEMPEST Source/main.cpp Source/Player.cpp Source/Controller.cpp Source/RenderThread.cpp)
 target_link_libraries(TEMPEST BELL) 

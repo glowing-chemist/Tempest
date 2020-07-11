@@ -15,7 +15,7 @@ class Player
 {
 public:
 
-    Player(InstanceID id, MeshInstance* inst);
+    Player(InstanceID id, MeshInstance* inst, const float3& pos, const float3& dir);
     ~Player() = default;
 
     void update(const Controller*, Engine*);
@@ -39,6 +39,16 @@ public:
     const std::vector<HitBox>& getHitBoxes() const
     {
         return mHitBoxes;
+    }
+
+    const float3& getDirection() const
+    {
+        return mDirection;
+    }
+
+    const float3& getPosition() const
+    {
+        return mPosition;
     }
 
 private:
