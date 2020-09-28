@@ -8,6 +8,7 @@
 #include "Controller.hpp"
 #include "Player.hpp"
 #include "RenderThread.hpp"
+#include "ScriptEngine.hpp"
 
 
 int main()
@@ -21,7 +22,7 @@ int main()
 
     Engine* eng = new Engine(window);
 
-    eng->startFrame();
+    eng->startFrame(std::chrono::microseconds(0));
     bool firstFrame = true;
     bool shouldClose = false;
 
@@ -61,7 +62,12 @@ int main()
                                        "./Assets/Textures/bluecloud_rt.jpg",
                                        "./Assets/Textures/bluecloud_lf.jpg" };
     testScene.loadSkybox(skybox, eng);
-    testScene.setShadowingLight(float3(-150.0f, 200.0f, -150.0f), float3(0.0f, -0.5f, 1.0f), float3(0.0f, -1.0f, 0.0f));
+    Camera shadowCam(float3(-150.0f, 200.0f, -150.0f), glm::normalize(float3(0.0f, -0.5f, 1.0f)), 1920.0f / 1080.0f);
+    shadowCam.setNearPlane(150.0f);
+    shadowCam.setFarPlane(250.0f);
+    shadowCam.setFrameBufferSizeOrthographic(float2{200.0f, 200.0f});
+    shadowCam.setCameraMode(CameraMode::Orthographic);
+    testScene.setShadowingLight(shadowCam);
 
     const SceneID player1MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
     const SceneID player2MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
@@ -73,7 +79,7 @@ int main()
     const InstanceID groundInstance =  testScene.addMeshInstance(planeID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
     const InstanceID cubeInstance =    testScene.addMeshInstance(cubeID, glm::scale(float3(30.0f, 100.0f, 30.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
 
-    RayTracingScene rtScene(&testScene);
+    RayTracingScene rtScene(eng, &testScene);
 
     testScene.loadMaterials(eng);
     testScene.uploadData(eng);
@@ -102,12 +108,15 @@ int main()
     camera.setDirection({-1.0f, 0.0f, 0.0f});
     camera.setFarPlane(50.0f);
 
+    ScriptEngine scriptEngine(eng, &testScene);
+
     Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance), float3(0.0f, 0.0f, -60.0f), float3(0.0f, 0.0f, -1.0f));
     Player* player2 = new Player(player2Instance, testScene.getMeshInstance(player2Instance), float3(0.0f, 0.0f, 60.0f), float3(0.0f, 0.0f, 1.0f));
 
     size_t frameCount = 0;
 
     RenderThread renderThread(eng);
+    auto frameStartTime = std::chrono::system_clock::now();
 
     while (!shouldClose)
     {
@@ -125,6 +134,11 @@ int main()
 
             renderThread.update(shouldClose, firstFrame);
 
+            const auto currentTime = std::chrono::system_clock::now();
+            std::chrono::microseconds frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime);
+            frameStartTime = currentTime;
+            scriptEngine.tick(frameDelta);
+
             // These update the scene in the engine so need to be guarded with a mutex.
             player1->update(controller1, eng);
             player2->update(controller2, eng);
@@ -132,36 +146,7 @@ int main()
             renderThread.unlock(lock);
         }
 
-        //if(frameCount > 200)
         {
-#if 0 // Enable for hacky collision detection.
-
-            const std::vector<Player::HitBox>& p1HitBoxes = player1->getHitBoxes();
-            const std::vector<Player::HitBox>& p2HitBoxes = player2->getHitBoxes();
-
-            for(const auto& b1 : p1HitBoxes)
-            {
-                for(const auto& b2 : p2HitBoxes)
-                {
-                    if(b1.mOrientatedBoundingBox.intersects(b2.mOrientatedBoundingBox))
-                    {
-                        const float3 player1Velocity = b1.mVelocity;
-                        const float player1Speed = glm::length(player1Velocity);
-                        const float3 player2Velocity = b2.mVelocity;
-                        const float player2Speed = glm::length(player2Velocity);
-
-                        if(player1Speed > player2Speed)
-                        {
-                            player2->applyForce(player1Velocity);
-                        }
-                        else
-                        {
-                            player1->applyForce(player2Velocity);
-                        }
-                    }
-                }
-            }
-#endif
 
 #if 1 // View detection.
 

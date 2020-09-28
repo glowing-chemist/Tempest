@@ -5,14 +5,20 @@
 
 void run(RenderThread* thread)
 {
+    auto frameStartTime = std::chrono::system_clock::now();
+
     while(!(thread->mShouldClose))
     {
         std::unique_lock lock(thread->mGraphics_context_mutex);
         thread->mGraphics_cv.wait(lock, [=]{return thread->mReady;});
         thread->mReady = false;
 
+        const auto currentTime = std::chrono::system_clock::now();
+        std::chrono::microseconds frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime);
+        frameStartTime = currentTime;
+
         if(!(thread->mFirstFrame))
-            thread->mEngine->startFrame();
+            thread->mEngine->startFrame(frameDelta);
 
         thread->mEngine->getScene()->computeBounds(MeshType::Dynamic);
 

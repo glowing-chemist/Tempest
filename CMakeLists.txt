@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
     
 set(BELL_PATH "../Bell")    
     
+set(BELL_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/)
 add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Bell)
     
 include_directories(	"${BELL_PATH}"
@@ -17,10 +18,68 @@ include_directories(	"${BELL_PATH}"
                         "${BELL_PATH}/ThirdParty/glslang"    
                         "${BELL_PATH}/ThirdParty/imgui-node-editor/NodeEditor/Include"    
                     	"${BELL_PATH}/ThirdParty/glm"           
-			"${BELL_PATH}/ThirdParty/stb_image")
+			"${BELL_PATH}/ThirdParty/stb_image"
+			"Source/lua/src")
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_BINARY_DIR}/")
 
+set(LUA_SOURCE
+    Source/lua/src/lapi.c
+    Source/lua/src/lcode.c
+    Source/lua/src/lctype.c
+    Source/lua/src/ldebug.c
+    Source/lua/src/ldo.c
+    Source/lua/src/ldump.c
+    Source/lua/src/lfunc.c
+    Source/lua/src/lgc.c
+    Source/lua/src/llex.c
+    Source/lua/src/lmem.c
+    Source/lua/src/lobject.c
+    Source/lua/src/lopcodes.c
+    Source/lua/src/lparser.c
+    Source/lua/src/lstate.c
+    Source/lua/src/lstring.c
+    Source/lua/src/ltable.c
+    Source/lua/src/ltm.c
+    Source/lua/src/lundump.c
+    Source/lua/src/lvm.c
+    Source/lua/src/lzio.c
+    Source/lua/src/lauxlib.c
+    Source/lua/src/lbaselib.c
+    Source/lua/src/lcorolib.c
+    Source/lua/src/ldblib.c
+    Source/lua/src/liolib.c
+    Source/lua/src/lmathlib.c
+    Source/lua/src/loadlib.c
+    Source/lua/src/loslib.c
+    Source/lua/src/lstrlib.c
+    Source/lua/src/ltablib.c
+    Source/lua/src/lutf8lib.c
+    Source/lua/src/linit.c)
 
-add_executable(TEMPEST Source/main.cpp Source/Player.cpp Source/Controller.cpp Source/RenderThread.cpp)
+set(ENGINE_SOURCE
+    Source/main.cpp
+    Source/Player.cpp
+    Source/Controller.cpp
+    Source/RenderThread.cpp
+    Source/ScriptEngine.cpp
+    Source/NavMesh.cpp)
+
+add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
 target_link_libraries(TEMPEST BELL) 
+
+
+set(SCRIPTS
+    main.lua)
+
+foreach(script ${SCRIPTS})
+  ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Scripts/${script}"
+    COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}" "${CMAKE_BINARY_DIR}/Scripts/${script}"
+    DEPENDS   "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}"
+    )
+list(APPEND script_dest "${CMAKE_CURRENT_BINARY_DIR}/Scripts/${script}")
+
+endforeach(script)
+add_custom_target(COPY_SCRIPTS DEPENDS ${script_dest})
+
+add_dependencies(TEMPEST COPY_SCRIPTS)
