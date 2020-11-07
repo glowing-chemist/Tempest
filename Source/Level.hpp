@@ -1,0 +1,48 @@
+#ifndef TEMPEST_LEVEL_HPP
+#define TEMPEST_LEVEL_HPP
+
+#include <filesystem>
+#include <string>
+#include <memory>
+#include <unordered_map>
+
+#include "json/json.h"
+
+#include "Engine/Scene.h"
+
+namespace Tempest
+{
+
+class Level
+{
+public:
+    Level(Engine* eng, const std::filesystem::path& path, const std::string& name);
+
+    Scene* getScene()
+    {
+        return mScene.get();
+    }
+
+    const std::string& getName() const
+    {
+        return mName;
+    }
+
+private:
+
+    void addMesh(const std::string& name, const Json::Value& entry);
+    void addMeshInstance(const std::string& name, const Json::Value& entry);
+    void addLight(const std::string& name, const Json::Value& entry);
+
+    std::string mName;
+
+    std::unordered_map<std::string, SceneID> mAssetIDs;
+    std::unordered_map<std::string, SceneID> mInstanceIDs;
+
+    std::unique_ptr<Scene> mScene;
+    Engine* mEngine;
+};
+
+}
+
+#endif

@@ -7,6 +7,9 @@
 
 class Engine;
 
+namespace Tempest
+{
+
 class RenderThread
 {
 public:
@@ -36,5 +39,7 @@ public:
     std::mutex mGraphics_context_mutex;
     std::condition_variable mGraphics_cv;
 };
+
+}
 
 #endif

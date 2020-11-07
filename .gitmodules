@@ -1,0 +1,6 @@
+[submodule "Source/jsoncpp"]
+	path = Source/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "Source/bullet3"]
+	path = Source/bullet3
+	url = https://github.com/bulletphysics/bullet3.git

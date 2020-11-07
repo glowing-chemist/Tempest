@@ -31,6 +31,7 @@ int main()
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
         VertexAttributes::Normals |
+        VertexAttributes::Tangents |
         VertexAttributes::Albedo
     );
 
@@ -39,6 +40,7 @@ int main()
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
         VertexAttributes::Normals |
+        VertexAttributes::Tangents |
         VertexAttributes::Albedo
     );
 
@@ -47,6 +49,7 @@ int main()
         VertexAttributes::Position4 |
         VertexAttributes::TextureCoordinates |
         VertexAttributes::Normals |
+        VertexAttributes::Tangents |
         VertexAttributes::Albedo
     );
 
@@ -66,7 +69,7 @@ int main()
     shadowCam.setNearPlane(150.0f);
     shadowCam.setFarPlane(250.0f);
     shadowCam.setFrameBufferSizeOrthographic(float2{200.0f, 200.0f});
-    shadowCam.setCameraMode(CameraMode::Orthographic);
+    shadowCam.setMode(CameraMode::Orthographic);
     testScene.setShadowingLight(shadowCam);
 
     const SceneID player1MeshID = testScene.addMesh(*firstMesh, MeshType::Dynamic);
@@ -74,10 +77,10 @@ int main()
     const SceneID planeID = testScene.addMesh(*floor, MeshType::Static);
     const SceneID cubeID = testScene.addMesh(*cube, MeshType::Static);
 
-    const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
-    const InstanceID player2Instance = testScene.addMeshInstance(player2MeshID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
-    const InstanceID groundInstance =  testScene.addMeshInstance(planeID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
-    const InstanceID cubeInstance =    testScene.addMeshInstance(cubeID, glm::scale(float3(30.0f, 100.0f, 30.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
+    const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID, kInvalidInstanceID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
+    const InstanceID player2Instance = testScene.addMeshInstance(player2MeshID, kInvalidInstanceID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion);
+    const InstanceID groundInstance =  testScene.addMeshInstance(planeID, kInvalidInstanceID, glm::scale(float3(100.0f, 100.0f, 100.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
+    const InstanceID cubeInstance =    testScene.addMeshInstance(cubeID, kInvalidInstanceID, glm::scale(float3(30.0f, 100.0f, 30.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals);
 
     RayTracingScene rtScene(eng, &testScene);
 
@@ -115,7 +118,7 @@ int main()
 
     size_t frameCount = 0;
 
-    RenderThread renderThread(eng);
+    Tempest::RenderThread renderThread(eng);
     auto frameStartTime = std::chrono::system_clock::now();
 
     while (!shouldClose)

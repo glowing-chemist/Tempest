@@ -8,7 +8,9 @@ set(BELL_PATH "../Bell")
     
 set(BELL_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/)
 add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Bell)
-    
+add_subdirectory(Source/jsoncpp)
+add_subdirectory(Source/bullet3)
+
 include_directories(	"${BELL_PATH}"
     "${BELL_PATH}/Include"
             		"${BELL_PATH}/Source"    
@@ -19,7 +21,9 @@ include_directories(	"${BELL_PATH}"
                         "${BELL_PATH}/ThirdParty/imgui-node-editor/NodeEditor/Include"    
                     	"${BELL_PATH}/ThirdParty/glm"           
 			"${BELL_PATH}/ThirdParty/stb_image"
-			"Source/lua/src")
+			"Source/lua/src"
+			"Source/bullet3/src/"
+			"Source/jsoncpp/include")
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_BINARY_DIR}/")
 
@@ -63,10 +67,13 @@ set(ENGINE_SOURCE
     Source/Controller.cpp
     Source/RenderThread.cpp
     Source/ScriptEngine.cpp
+    Source/Level.cpp
+    Source/TempestEngine.cpp
+    Source/PhysicsWorld.cpp
     Source/NavMesh.cpp)
 
 add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
-target_link_libraries(TEMPEST BELL) 
+target_link_libraries(TEMPEST BELL jsoncpp Bullet3Common)
 
 
 set(SCRIPTS

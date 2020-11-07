@@ -18,7 +18,7 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
 {
     inst->setInstanceFlags(InstanceFlags::Draw | InstanceFlags::DrawAABB);
 
-    const std::vector<StaticMesh::Bone>& skeleton = inst->mMesh->getSkeleton();
+    const std::vector<StaticMesh::Bone>& skeleton = inst->getMesh()->getSkeleton();
     mHitBoxes.reserve(skeleton.size());
     for(const auto& bone : skeleton)
     {
@@ -100,17 +100,17 @@ void Player::update(const Controller* controller, Engine* eng)
 
 void Player::updateHitBoxes(Engine* eng)
 {
-    const std::vector<Engine::AnimationEntry>& activeAnims = eng->getActiveAnimations();
+    const std::vector<Engine::SkeletalAnimationEntry>& activeAnims = eng->getActiveSkeletalAnimations();
     bool foundAnim = false;
-    const std::vector<StaticMesh::Bone>& skeleton = mInstance->mMesh->getSkeleton();
+    const std::vector<StaticMesh::Bone>& skeleton = mInstance->getMesh()->getSkeleton();
     for(const auto& anim : activeAnims)
     {
         if(anim.mMesh == mID)
         {
             foundAnim = true;
 
-            Animation& animation = mInstance->mMesh->getAnimation(anim.mName);
-            std::vector<float4x4> boneTransforms = animation.calculateBoneMatracies(*mInstance->mMesh, anim.mTick);
+            SkeletalAnimation& animation = mInstance->getMesh()->getSkeletalAnimation(anim.mName);
+            std::vector<float4x4> boneTransforms = animation.calculateBoneMatracies(*mInstance->getMesh(), anim.mTick);
 
             for(uint32_t i = 0; i < skeleton.size(); ++i)
             {

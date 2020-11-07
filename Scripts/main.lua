@@ -1,6 +1,6 @@
 
 init = function ()
-	print("hello world")
+	print("Initialised lua scripting system")
 end
 
 main = function (gameState)

@@ -3,7 +3,7 @@
 #include "Engine/Engine.hpp"
 
 
-void run(RenderThread* thread)
+void run(Tempest::RenderThread* thread)
 {
     auto frameStartTime = std::chrono::system_clock::now();
 
@@ -40,6 +40,8 @@ void run(RenderThread* thread)
     thread->mGraphics_cv.notify_one();*/
 }
 
+namespace Tempest
+{
 
 RenderThread::RenderThread(Engine* eng) :
     mEngine(eng)
@@ -76,4 +78,6 @@ void RenderThread::unlock(std::unique_lock<std::mutex>& lock)
     mReady = true;
     lock.unlock();
     mGraphics_cv.notify_one();
+}
+
 }
