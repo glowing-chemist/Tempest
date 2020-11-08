@@ -72,8 +72,17 @@ set(ENGINE_SOURCE
     Source/PhysicsWorld.cpp
     Source/NavMesh.cpp)
 
+set(BULLET
+    BulletInverseDynamics
+    BulletDynamics
+    BulletSoftBody
+    BulletCollision
+    Bullet3Common
+    LinearMath
+    )
+
 add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
-target_link_libraries(TEMPEST BELL jsoncpp Bullet3Common)
+target_link_libraries(TEMPEST BELL jsoncpp ${BULLET})
 
 
 set(SCRIPTS
