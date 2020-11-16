@@ -51,12 +51,40 @@ public:
         return mPosition;
     }
 
+    void attachCamera(Camera& cam, const float armatureLength)
+    {
+        mArmatureLength = armatureLength;
+        mCamera = &cam;
+    }
+
+    void detatchCamera()
+    {
+        mCamera = nullptr;
+    }
+
+    void attachShadowCamera(Camera& cam)
+    {
+        mShadowCamera = &cam;
+    }
+
+    void detatchShadowCamera()
+    {
+        mShadowCamera = nullptr;
+    }
+
+    void undoMove();
+
 private:
 
     void updateHitBoxes(Engine *eng);
 
     InstanceID mID;
     MeshInstance* mInstance;
+
+    float mCentralHeight;
+    float mArmatureLength;
+    Camera* mCamera;
+    Camera* mShadowCamera;
 
     float3 mPosition;
     float3 mDirection;

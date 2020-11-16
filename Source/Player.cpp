@@ -10,6 +10,7 @@
 Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float3 &dir) :
     mID(id),
     mInstance(inst),
+    mCamera(nullptr),
     mPosition(pos),
     mDirection(dir),
     mCurrentState(Resting),
@@ -17,8 +18,12 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
     mCoolDownCounter{0}
 {
     inst->setInstanceFlags(InstanceFlags::Draw | InstanceFlags::DrawAABB);
+    StaticMesh* mesh = inst->getMesh();
 
-    const std::vector<StaticMesh::Bone>& skeleton = inst->getMesh()->getSkeleton();
+    const AABB& aabb = mesh->getAABB();
+    mCentralHeight = aabb.getCentralPoint().y;
+
+    const std::vector<StaticMesh::Bone>& skeleton = mesh->getSkeleton();
     mHitBoxes.reserve(skeleton.size());
     for(const auto& bone : skeleton)
     {
@@ -37,6 +42,33 @@ void Player::update(const Controller* controller, Engine* eng)
     const float z = controller->getLeftAxisY();
     const bool moving = (x != 0.0f || z != 0.0f) && mCoolDownCounter == 0;
 
+    // update attached camera
+    if(mCamera)
+    {
+        const float cx = controller->getRighAxisX();
+        const float cz = controller->getRighAxisY();
+
+        float3 position = mCamera->getPosition();
+        float3 direction = mCamera->getDirection();
+        const float3 right = mCamera->getRight();
+
+        glm::float4x4 rotation = glm::rotate(-0.1f * cx, float3(0.0f, 1.0f, 0.0f)) * glm::rotate(-0.1f * cz, right);
+        const float4 positionOffset = float4(float3((mArmatureLength * direction) + float3(0.0f, -mCentralHeight - mPosition.y, 0.0f)), 0.0f);
+        position = mPosition - float3(positionOffset * rotation);
+        direction = glm::normalize(float4(direction, 0.0f) * rotation);
+
+        mCamera->setPosition(position);
+        mCamera->setDirection(direction);
+    }
+
+    if(mShadowCamera && moving)
+    {
+        float3 position = mShadowCamera->getPosition();
+        position += float3(mDirection.x, 0.0f, mDirection.z);
+
+        mShadowCamera->setPosition(position);
+    }
+
     if(mCoolDownCounter > 0)
         --mCoolDownCounter;
 
@@ -45,7 +77,16 @@ void Player::update(const Controller* controller, Engine* eng)
 
     if(moving)
     {
-        mDirection = float3{z, 0.0f,  x};
+        if(mCamera)
+        {
+            float3 direction = mCamera->getDirection();
+            direction.y = 0.0f;
+            direction = glm::normalize(direction);
+            const float3 right = mCamera->getRight();
+            mDirection = (-z * direction) + (x * right);
+        }
+        else
+            mDirection = float3{z, 0.0f,  x};
         mPosition += mDirection;
     }
 
@@ -63,7 +104,6 @@ void Player::update(const Controller* controller, Engine* eng)
     const float4x4 translation = glm::translate(float4x4(1.0f), mPosition);
 
     mInstance->setTransMatrix(translation * rotation);
-
 
     if(mCurrentState == Resting && moving)
     {
@@ -95,6 +135,28 @@ void Player::update(const Controller* controller, Engine* eng)
     }
 
     updateHitBoxes(eng);
+}
+
+
+void Player::undoMove()
+{
+    if(mCamera)
+    {
+        float3 position = mCamera->getPosition();
+        position = position - mDirection * 2.0f;
+
+        mCamera->setPosition(position);
+    }
+
+    if(mShadowCamera)
+    {
+        float3 position = mShadowCamera->getPosition();
+        position = position - mDirection * 2.0f;
+
+        mShadowCamera->setPosition(position);
+    }
+
+    mPosition -= mDirection * 2.0f;
 }
 
 

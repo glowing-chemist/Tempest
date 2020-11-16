@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(BELL_PATH "../Bell")    
     
 set(BELL_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/)
-add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Bell)
+add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/../Bellbuilds/${CMAKE_BUILD_TYPE})
 add_subdirectory(Source/jsoncpp)
 add_subdirectory(Source/bullet3)
 
