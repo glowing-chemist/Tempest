@@ -74,7 +74,9 @@ int main()
     Controller* controller1 = new Controller(GLFW_JOYSTICK_1);
 
     Scene testScene("Assets//Materials");
-    testScene.setOctreeMaxDivisions(1);
+    testScene.setOctreeMaxDivisions(2, AccelerationStructure::Static);
+    testScene.setOctreeMaxDivisions(1, AccelerationStructure::Dynamic);
+    testScene.setOctreeMaxDivisions(3, AccelerationStructure::Physics);
 
     std::array<std::string, 6> skybox{ "./Assets/Textures/bluecloud_ft.jpg",
                                        "./Assets/Textures/bluecloud_bk.jpg",
@@ -108,8 +110,9 @@ int main()
 
     eng->setScene(&testScene);
 
-    eng->getScene()->computeBounds(MeshType::Dynamic);
-    eng->getScene()->computeBounds(MeshType::Static);
+    eng->getScene()->computeBounds(AccelerationStructure::Dynamic);
+    eng->getScene()->computeBounds(AccelerationStructure::Static);
+    eng->getScene()->computeBounds(AccelerationStructure::Physics);
 
     setupGraphicsState(eng);
 
@@ -150,7 +153,7 @@ int main()
             // These update the scene in the engine so need to be guarded with a mutex.
             player1->update(controller1, eng);
 
-            testScene.computeBounds(MeshType::Dynamic);
+            testScene.computeBounds(AccelerationStructure::Dynamic);
 
             std::vector<Scene::Intersection> collisions = testScene.getIntersections(player1Instance);
             for(const auto& collision : collisions)

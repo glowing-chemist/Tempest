@@ -20,7 +20,7 @@ void run(Tempest::RenderThread* thread)
         if(!(thread->mFirstFrame))
             thread->mEngine->startFrame(frameDelta);
 
-        thread->mEngine->getScene()->computeBounds(MeshType::Dynamic);
+        thread->mEngine->getScene()->computeBounds(AccelerationStructure::Dynamic);
 
         thread->mEngine->recordScene();
         thread->mEngine->render();
