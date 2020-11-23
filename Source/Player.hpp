@@ -77,6 +77,7 @@ public:
 private:
 
     void updateHitBoxes(Engine *eng);
+    void updateRenderinstance();
 
     InstanceID mID;
     MeshInstance* mInstance;

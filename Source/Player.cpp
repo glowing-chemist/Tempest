@@ -98,12 +98,7 @@ void Player::update(const Controller* controller, Engine* eng)
     else // Hack
         mPosition.y = 0.0f;
 
-    float angle = glm::orientedAngle(float2(1.0f, 0.0f), glm::normalize(float2(mDirection.z, mDirection.x)));
-
-    const float4x4 rotation = glm::rotate(angle, float3{0.0f, 1.0f, 0.0f});
-    const float4x4 translation = glm::translate(float4x4(1.0f), mPosition);
-
-    mInstance->setTransMatrix(translation * rotation);
+    updateRenderinstance();
 
     if(mCurrentState == Resting && moving)
     {
@@ -156,7 +151,7 @@ void Player::undoMove()
         mShadowCamera->setPosition(position);
     }
 
-    mPosition -= mDirection * 2.0f;
+    mPosition -= mDirection * 4.0f;
 }
 
 
@@ -203,4 +198,15 @@ void Player::updateHitBoxes(Engine* eng)
             previousHitBox.mOrientatedBoundingBox = transformedOBB;
         }
     }
+}
+
+
+void Player::updateRenderinstance()
+{
+    float angle = glm::orientedAngle(float2(1.0f, 0.0f), glm::normalize(float2(mDirection.z, mDirection.x)));
+
+    const float4x4 rotation = glm::rotate(angle, float3{0.0f, 1.0f, 0.0f});
+    const float4x4 translation = glm::translate(float4x4(1.0f), mPosition);
+
+    mInstance->setTransMatrix(translation * rotation);
 }
