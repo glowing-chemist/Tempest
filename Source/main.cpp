@@ -116,7 +116,7 @@ int main()
     Camera& camera = eng->getCurrentSceneCamera();
     camera.setFarPlane(200.0f);
 
-    ScriptEngine scriptEngine(eng, &testScene);
+    Tempest::ScriptEngine scriptEngine(eng, &testScene);
 
     Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance), float3(0.0f, 0.0f, -60.0f), float3(0.0f, 0.0f, -1.0f));
     player1->attachCamera(camera, 120.0f);
