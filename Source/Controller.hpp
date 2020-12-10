@@ -50,6 +50,7 @@ private:
 
     unsigned char mButtons[8];
 
+    double mMouseX, mMouseY;
     bool mHardwareController;
 };
 
