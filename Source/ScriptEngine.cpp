@@ -7,6 +7,7 @@ namespace Tempest
 {
 
 ScriptEngine* s_scriptEngine;
+std::unordered_map<std::string, int(*)(lua_State*)> s_dispatchFunctions;
 
 ScriptEngine::ScriptEngine(Engine* eng, Scene* scene) :
     mState(nullptr),
@@ -69,6 +70,12 @@ void ScriptEngine::load_script(const char* f)
 {
     const bool error = luaL_loadfile(mState, f) || lua_pcall(mState, 0, 0, 0);
     BELL_ASSERT(!error, "Failed to load script file")
+}
+
+
+ScriptEngine* getScriptEngine()
+{
+    return s_scriptEngine;
 }
 
 }

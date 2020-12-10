@@ -70,7 +70,8 @@ set(ENGINE_SOURCE
     Source/Level.cpp
     Source/TempestEngine.cpp
     Source/PhysicsWorld.cpp
-    Source/NavMesh.cpp)
+    Source/NavMesh.cpp
+    Source/ScriptableScene.cpp)
 
 set(BULLET
     BulletInverseDynamics

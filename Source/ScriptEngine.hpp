@@ -1,7 +1,7 @@
 #ifndef SCRIPT_ENGINE_HPP
 #define SCRIPT_ENGINE_HPP
 
-#include "lua.hpp"
+#include "ScriptHooks.hpp"
 
 #include <chrono>
 #include <type_traits>
@@ -46,7 +46,7 @@ public:
     ScriptableCallableBase() = default;
     ~ScriptableCallableBase() = default;
 
-    virtual void callFunction(lua_State* L) = 0;
+    virtual int callFunction(lua_State* L) = 0;
 };
 
 extern std::unordered_map<std::string, int(*)(lua_State*)> s_dispatchFunctions;
@@ -56,17 +56,19 @@ class ScriptableCallable : ScriptableCallableBase
 {
 public:
 
-    ScriptableCallable(typename ExtractClassType<F>::CLASS*, const std::string& name);
+    ScriptableCallable(F f, typename ExtractClassType<F>::CLASS* s) :
+        mSystem(s), mF(f) {}
 
 
-    virtual void callFunction(lua_State* L) override
+    virtual int callFunction(lua_State* L) override
     {
-
+        return executeCallback<F, ExtractClassType<F>::CLASS, Args...>(L, mF, mSystem);
     }
 
 private:
 
     typename ExtractClassType<F>::CLASS* mSystem;
+    F mF;
 };
 
 
@@ -117,9 +119,17 @@ public:
         {
             int(*f)(lua_State*) = s_dispatchFunctions[name];
             lua_register(mState, name.c_str(), f);
+
+            mCallables.insert({name, callable});
         }
 
         delete registrar;
+    }
+
+    ScriptableCallableBase* getCallableByName(const std::string& name)
+    {
+        BELL_ASSERT(mCallables.find(name) != mCallables.end(), "Can't find script callcable")
+        return mCallables[name];
     }
 
 private:
@@ -132,10 +142,14 @@ private:
 
     std::unordered_map<std::string, std::vector<int64_t>> mComponentScripts[kContext_Count];
 
+    std::unordered_map<std::string, ScriptableCallableBase*> mCallables;
+
     lua_State* mState;
     Engine* mEngine;
     Scene* mScene;
 };
+
+ScriptEngine* getScriptEngine();
 
 }
 
