@@ -4,7 +4,9 @@
 #include <cstring>
 
 
-Controller::Controller(const int id) : mID(id)
+Controller::Controller(const int id) : mID(id),
+    mMouseX(0.0),
+    mMouseY(0.0)
 {
     const int present = glfwJoystickPresent(mID);
     if(present == GLFW_TRUE)

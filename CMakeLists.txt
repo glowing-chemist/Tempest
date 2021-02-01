@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
     
 set(BELL_PATH "../Bell")    
     
-set(BELL_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/)
+set(BELL_SHADER_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
 add_subdirectory(${BELL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/../Bellbuilds/${CMAKE_BUILD_TYPE})
 add_subdirectory(Source/jsoncpp)
 add_subdirectory(Source/bullet3)
@@ -25,7 +25,7 @@ include_directories(	"${BELL_PATH}"
 			"Source/bullet3/src/"
 			"Source/jsoncpp/include")
 
-file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_BINARY_DIR}/")
+file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/")
 
 set(LUA_SOURCE
     Source/lua/src/lapi.c
@@ -83,18 +83,17 @@ set(BULLET
     )
 
 add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
-target_link_libraries(TEMPEST BELL jsoncpp ${BULLET})
-
+target_link_libraries(TEMPEST BELL jsoncpp_static ${BULLET})
 
 set(SCRIPTS
     main.lua)
 
 foreach(script ${SCRIPTS})
-  ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Scripts/${script}"
-    COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}" "${CMAKE_BINARY_DIR}/Scripts/${script}"
+  ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}"
+    COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}"
     DEPENDS   "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}"
     )
-list(APPEND script_dest "${CMAKE_CURRENT_BINARY_DIR}/Scripts/${script}")
+list(APPEND script_dest "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}")
 
 endforeach(script)
 add_custom_target(COPY_SCRIPTS DEPENDS ${script_dest})

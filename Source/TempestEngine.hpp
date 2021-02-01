@@ -4,7 +4,7 @@
 #include <filesystem>
 
 class Engine;
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace Tempest
 {
