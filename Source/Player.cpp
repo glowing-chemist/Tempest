@@ -38,8 +38,8 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
 
 void Player::update(const Controller* controller, Engine* eng)
 {
-    const float x = controller->getLeftAxisX();
-    const float z = controller->getLeftAxisY();
+    const float x = controller->getLeftAxisX() * 0.01f;
+    const float z = controller->getLeftAxisY() * 0.01f;
     const bool moving = (x != 0.0f || z != 0.0f) && mCoolDownCounter == 0;
 
     // update attached camera
