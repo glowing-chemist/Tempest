@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstring>
 
+#include "Core/Profiling.hpp"
+
 
 Controller::Controller(const int id) : mID(id),
     mMouseX(0.0),
@@ -29,6 +31,8 @@ Controller::~Controller()
 
 void Controller::update(GLFWwindow* window)
 {
+    PROFILER_EVENT();
+
     if(mHardwareController)
     {
         int axisCount;

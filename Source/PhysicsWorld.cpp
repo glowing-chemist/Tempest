@@ -5,6 +5,7 @@
 
 #include "glm/gtc/type_ptr.hpp"
 
+#include "Core/Profiling.hpp"
 
 namespace Tempest
 {
@@ -37,18 +38,24 @@ PhysicsWorld::~PhysicsWorld()
 
 void PhysicsWorld::tick(const std::chrono::microseconds diff)
 {
+    PROFILER_EVENT();
+
     mWorld->stepSimulation(float(diff.count()) / 1000000.0f, 10);
 }
 
-void PhysicsWorld::addObject(const InstanceID id, const PhysicsEntityType type, const BasicCollisionGeometry collisionGeometry, const float4x4& transformation, const float mass)
+void PhysicsWorld::addObject(const InstanceID id,
+                             const PhysicsEntityType type,
+                             const BasicCollisionGeometry collisionGeometry,
+                             const float3& pos,
+                             const float3& size,
+                             const float mass)
 {
     btTransform transform;
     transform.setIdentity();
-    const float4 origin = transformation[3];
-    transform.setOrigin(btVector3(origin.x, origin.y, origin.z));
+    transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
 
     btVector3 localInertia;
-    btCollisionShape* shape = getCollisionShape(collisionGeometry, type, transformation, mass, localInertia);
+    btCollisionShape* shape = getCollisionShape(collisionGeometry, type, size, mass, localInertia);
 
     btDefaultMotionState* myMotionState = new btDefaultMotionState(transform);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, shape, localInertia);
@@ -72,7 +79,12 @@ void PhysicsWorld::addObject(const InstanceID id, const PhysicsEntityType type, 
     mWorld->addRigidBody(body);
 }
 
-void PhysicsWorld::addObject(const InstanceID id, const PhysicsEntityType, const StaticMesh &collisionGeometry, const float4x4 &translation, const float mass)
+void PhysicsWorld::addObject(const InstanceID id,
+                             const PhysicsEntityType,
+                             const StaticMesh &collisionGeometry,
+                             const float3& pos,
+                             const float3& size,
+                             const float mass)
 {
     BELL_TRAP;
 }
@@ -88,10 +100,9 @@ void PhysicsWorld::removeObject(const InstanceID id)
     mFreeRigidBodyIndices.push_back(index);
 }
 
-btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry type, const PhysicsEntityType entitytype, const float4x4& transformation, const float mass, btVector3& outInertia)
+btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry type, const PhysicsEntityType entitytype, const float3& scale, const float mass, btVector3& outInertia)
 {
     btCollisionShape* shape;
-    float3 scale = float3(transformation[0].x, transformation[1].y, transformation[2].z);
     auto it = mDefaultShapeCache.find({type, scale});
     if(it != mDefaultShapeCache.end())
     {
@@ -117,6 +128,12 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
             case BasicCollisionGeometry::Capsule:
             {
                 shape = new btCapsuleShape(scale.x, scale.y);
+                break;
+            }
+
+            case BasicCollisionGeometry::Plane:
+            {
+                shape = new btStaticPlaneShape({0.0f, 1.0f, 0.0f}, 0.0f);
                 break;
             }
         }

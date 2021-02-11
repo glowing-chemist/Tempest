@@ -10,6 +10,10 @@ static constexpr const char kJumpAnimation[] = "Armature|Kick";
 
 class Controller;
 
+namespace Tempest
+{
+    class PhysicsWorld;
+}
 
 class Player
 {
@@ -18,7 +22,7 @@ public:
     Player(InstanceID id, MeshInstance* inst, const float3& pos, const float3& dir);
     ~Player() = default;
 
-    void update(const Controller*, Engine*);
+    void update(const Controller*, Engine*, Tempest::PhysicsWorld* world);
 
     void applyForce(const float3& dir)
     {

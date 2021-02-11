@@ -1,10 +1,13 @@
 #include "RenderThread.hpp"
 
+#include "Core/Profiling.hpp"
 #include "Engine/Engine.hpp"
 
 
 void run(Tempest::RenderThread* thread)
 {
+    PROFILER_THREAD("Render Thread")
+
     auto frameStartTime = std::chrono::system_clock::now();
 
     while(!(thread->mShouldClose))

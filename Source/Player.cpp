@@ -1,5 +1,6 @@
 #include "Player.hpp"
 #include "Controller.hpp"
+#include "PhysicsWorld.hpp"
 
 #include "Engine/Engine.hpp"
 #include "Engine/GeomUtils.h"
@@ -36,8 +37,10 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
 }
 
 
-void Player::update(const Controller* controller, Engine* eng)
+void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsWorld* world)
 {
+    PROFILER_EVENT();
+
     const float x = controller->getLeftAxisX() * 0.01f;
     const float z = controller->getLeftAxisY() * 0.01f;
     const bool moving = (x != 0.0f || z != 0.0f) && mCoolDownCounter == 0;
@@ -75,29 +78,24 @@ void Player::update(const Controller* controller, Engine* eng)
     if(mCoolDownCounter == 0 && mCurrentState == Jumping)
         mCurrentState = Resting;
 
-    if(moving)
-    {
-        if(mCamera)
-        {
+#if 0
+    if(moving) {
+        if (mCamera) {
             float3 direction = mCamera->getDirection();
             direction.y = 0.0f;
             direction = glm::normalize(direction);
             const float3 right = mCamera->getRight();
             mDirection = (-z * direction) + (x * right);
-        }
-        else
-            mDirection = float3{z, 0.0f,  x};
+        } else
+            mDirection = float3{z, 0.0f, x};
         mPosition += mDirection;
     }
+#else
+    btRigidBody* body = world->getRigidBody(mID);
+    const btTransform& transform = body->getWorldTransform();
+    mPosition = {transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()};
 
-    // Apply gravity
-    if(mPosition.y > 0.0f)
-    {
-        mPosition.y -= 0.8f;
-    }
-    else // Hack
-        mPosition.y = 0.0f;
-
+#endif
     updateRenderinstance();
 
     if(mCurrentState == Resting && moving)

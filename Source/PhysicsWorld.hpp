@@ -21,7 +21,8 @@ enum class BasicCollisionGeometry
 {
     Box,
     Sphere,
-    Capsule
+    Capsule,
+    Plane
 };
 
 class PhysicsWorld
@@ -32,8 +33,18 @@ public:
 
     void tick(const std::chrono::microseconds diff);
 
-    void addObject(const InstanceID id, const PhysicsEntityType, const StaticMesh& collisionGeometry, const float4x4& transformation, const float mass = 0.0f);
-    void addObject(const InstanceID id, const PhysicsEntityType type, const BasicCollisionGeometry collisionGeometry, const float4x4& transformation, const float mass = 0.0f);
+    void addObject(const InstanceID id,
+                   const PhysicsEntityType,
+                   const StaticMesh& collisionGeometry,
+                   const float3& pos,
+                   const float3& size,
+                   const float mass = 0.0f);
+
+    void addObject(const InstanceID id,
+                   const PhysicsEntityType type,
+                   const BasicCollisionGeometry collisionGeometry,
+                   const float3& pos,
+                   const float3& size, const float mass = 0.0f);
 
     void removeObject(const InstanceID id);
 
@@ -48,6 +59,16 @@ public:
         return mWorld->getNonStaticRigidBodies();
     }
 
+    int getManifoldCount() const
+    {
+        return mCollisionDispatcher->getNumManifolds();
+    }
+
+    btPersistentManifold** getManifolds()
+    {
+        return mCollisionDispatcher->getInternalManifoldPointer();
+    }
+
     struct DefaultShapeCacheEntry
     {
         BasicCollisionGeometry mType;
@@ -56,7 +77,11 @@ public:
 
 private:
 
-    btCollisionShape* getCollisionShape(const BasicCollisionGeometry type, const PhysicsEntityType entitytype, const float4x4& transformation, const float mass, btVector3& outInertia);
+    btCollisionShape* getCollisionShape(const BasicCollisionGeometry type,
+                                        const PhysicsEntityType entitytype,
+                                        const float3& scale,
+                                        const float mass,
+                                        btVector3& outInertia);
 
     std::unique_ptr<btDefaultCollisionConfiguration> mCollisionConfig;
     std::unique_ptr<btCollisionDispatcher> mCollisionDispatcher;
