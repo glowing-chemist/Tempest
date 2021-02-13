@@ -78,9 +78,10 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
     if(mCoolDownCounter == 0 && mCurrentState == Jumping)
         mCurrentState = Resting;
 
-#if 0
-    if(moving) {
-        if (mCamera) {
+    if(moving)
+    {
+        if (mCamera)
+        {
             float3 direction = mCamera->getDirection();
             direction.y = 0.0f;
             direction = glm::normalize(direction);
@@ -89,14 +90,15 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
         } else
             mDirection = float3{z, 0.0f, x};
         mPosition += mDirection;
-    }
-#else
-    btRigidBody* body = world->getRigidBody(mID);
-    const btTransform& transform = body->getWorldTransform();
-    mPosition = {transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()};
 
-#endif
-    updateRenderinstance();
+        btRigidBody* body = world->getRigidBody(mID);
+        btTransform& transform = body->getWorldTransform();
+        transform.setOrigin({mPosition.x, mCentralHeight + mPosition.y,mPosition.z});
+        body->setWorldTransform(transform);
+        body->activate(true);
+
+        updateRenderinstance();
+    }
 
     if(mCurrentState == Resting && moving)
     {

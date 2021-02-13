@@ -19,7 +19,7 @@ enum class PhysicsEntityType
 
 enum class BasicCollisionGeometry
 {
-    Box,
+    Box = 0,
     Sphere,
     Capsule,
     Plane
@@ -97,9 +97,9 @@ private:
 
     struct InstanceInfo
     {
-	InstanceID mID;
-	PhysicsEntityType mType;
-	uint32_t mIndex;
+        InstanceID mID;
+        PhysicsEntityType mType;
+        uint32_t mIndex;
     };
 
     std::unordered_map<InstanceID, uint32_t> mInstanceMap;
@@ -107,7 +107,18 @@ private:
 
     inline bool operator<(const PhysicsWorld::DefaultShapeCacheEntry& lhs, const PhysicsWorld::DefaultShapeCacheEntry& rhs)
     {
-        return (lhs.mScale.x < rhs.mScale.x && lhs.mScale.y < rhs.mScale.y && lhs.mScale.z < rhs.mScale.z) && (static_cast<uint32_t>(lhs.mType) < static_cast<uint32_t>(rhs.mType));
+        auto hash = [](const PhysicsWorld::DefaultShapeCacheEntry& e)
+        {
+            std::hash<float> hasher{};
+            uint64_t h = hasher(e.mScale.x);
+            h ^= hasher(e.mScale.y);
+            h ^= hasher(e.mScale.z);
+            h &= std::hash<uint32_t>{}(static_cast<uint32_t>(e.mType));
+
+            return h;
+        };
+
+        return hash(lhs) < hash(rhs);
     }
 
 }

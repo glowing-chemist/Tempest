@@ -24,9 +24,9 @@ void setupGraphicsState(Engine* eng)
     eng->registerPass(PassType::Composite);
     eng->registerPass(PassType::Animation);
     eng->registerPass(PassType::LineariseDepth);
-#ifndef NDEBUG
+//#ifndef NDEBUG
     eng->registerPass(PassType::DebugAABB);
-#endif
+//#endif
 }
 
 
@@ -98,7 +98,7 @@ int main()
     const SceneID cubeID = testScene.addMesh(*cube, MeshType::Static);
 
     const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID, kInvalidInstanceID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion, "Player");
-    physicsWorld->addObject(player1Instance, Tempest::PhysicsEntityType::DynamicRigid, Tempest::BasicCollisionGeometry::Capsule, float3{0.0f, 1.0f, 0.0f}, float3{0.25f, 0.5f, 0.25f}, 60.0f);
+    physicsWorld->addObject(player1Instance, Tempest::PhysicsEntityType::StaticRigid, Tempest::BasicCollisionGeometry::Capsule, float3{0.0f, 0.0f, 0.0f}, float3{0.25f, 0.5f, 0.25f}, 60.0f);
     // Restrict player capsule rotation
     {
         btRigidBody *playerCapsule = physicsWorld->getRigidBody(player1Instance);
@@ -165,10 +165,17 @@ int main()
                 MeshInstance* inst0 = testScene.getMeshInstance(obj0->getUserIndex());
                 MeshInstance* inst1 = testScene.getMeshInstance(obj1->getUserIndex());
 
-                printf("collision between %s and %s\n", inst0->getName().c_str(), inst1->getName().c_str());
+                //printf("collision between %s and %s\n", inst0->getName().c_str(), inst1->getName().c_str());
             }
         }
         controller1->update(window);
+
+        btRigidBody* playerBody = physicsWorld->getRigidBody(player1Instance);
+        btVector3 playerMin, playerMax;
+        playerBody->getAabb(playerMin, playerMax);
+        printf("player min %f %f %f\n", playerMin.x(), playerMin.y(), playerMin.z());
+        eng->addDebugAABB({float4{playerMin.x(), playerMin.y(), playerMin.z(), 0.0f},
+                           float4{playerMax.x(), playerMax.y(), playerMax.z(), 0.0f}});
 
         {
             renderThread.update(shouldClose, firstFrame);
