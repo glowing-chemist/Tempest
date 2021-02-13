@@ -44,7 +44,7 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 
     const float x = controller->getLeftAxisX() * 0.01f;
     const float z = controller->getLeftAxisY() * 0.01f;
-    const bool moving = (x != 0.0f || z != 0.0f) && mCoolDownCounter == 0;
+    const bool moving = (x != 0.0f || z != 0.0f);
 
     // update attached camera
     if(mCamera)
@@ -79,6 +79,8 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
     if(mCoolDownCounter == 0 && mCurrentState == Jumping)
         mCurrentState = Resting;
 
+    btRigidBody* body = world->getRigidBody(mID);
+
     if(moving)
     {
         if (mCamera)
@@ -92,13 +94,11 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
             mDirection = float3{z, 0.0f, x};
         mPosition += mDirection;
 
-        btRigidBody* body = world->getRigidBody(mID);
-        btTransform& transform = body->getWorldTransform();
         body->translate({mDirection.x, mDirection.y, mDirection.z});
-        body->activate(true);
-        const btVector3& origin =  transform.getOrigin();
-        mPosition = {origin.x(), origin.y() - mCentralHeight, origin.z()};
     }
+
+    const btVector3& origin =  body->getCenterOfMassPosition();
+    mPosition = {origin.x(), origin.y() - mCentralHeight, origin.z()};
 
     updateRenderinstance();
 
@@ -123,6 +123,9 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
         mCurrentState = Jumping;
 
         eng->startAnimation(mID, kJumpAnimation, false, 4.0f);
+        if(!body->isActive())
+            body->activate(true);
+        body->applyCentralImpulse({0.0f, 300.0f, 0.0f});
 
         mCoolDownCounter = 40;
     }
@@ -132,6 +135,9 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
     }
 
     updateHitBoxes(eng);
+
+    if(!body->isActive())
+        body->activate(true);
 }
 
 

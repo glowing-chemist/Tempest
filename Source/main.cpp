@@ -99,14 +99,14 @@ int main()
 
     const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID,
                                                                  kInvalidInstanceID,
-                                                                 glm::scale(float4x4(1.0f), {0.01f, 0.01f, 0.01f}),
+                                                                 glm::translate(float3{0.0f, 5.0f, 0.0f}) * glm::scale(float3{0.05f, 0.05f, 0.05f}),
                                                                  0,
                                                                  MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion,
                                                                  "Player");
     physicsWorld->addObject(player1Instance,
                             Tempest::PhysicsEntityType::DynamicRigid,
                             Tempest::BasicCollisionGeometry::Capsule,
-                            float3{0.0f, 0.0f, 0.0f},
+                            float3{0.0f, 5.0f, 0.0f},
                             float3{0.125f, 0.25f, 0.125f},
                             60.0f);
     // Restrict player capsule rotation
@@ -136,7 +136,7 @@ int main()
     }
     const InstanceID groundInstance =  testScene.addMeshInstance(planeID,
                                                                  kInvalidInstanceID,
-                                                                 testScene.getRootTransform() * glm::scale(float3(1000.0f, 1.0f, 1000.0f)) *  glm::rotate(glm::radians(-90.0f),float3(1.0f, 0.0f, 0.0f)),
+                                                                 testScene.getRootTransform() * glm::rotate(glm::radians(-90.0f),float3(1.0f, 0.0f, 0.0f)) * glm::scale(float3(1000.0f, 1000.0f, 1.0f)),
                                                                  5,
                                                                  MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals,
                                                                  "Ground plane");
