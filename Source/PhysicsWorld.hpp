@@ -50,8 +50,8 @@ public:
 
     btRigidBody* getRigidBody(const InstanceID id)
     {
-	const uint32_t index = mInstanceMap[id];
-	return mRigidBodies[index].get();
+        const uint32_t index = mInstanceMap[id];
+        return mRigidBodies[index].get();
     }
 
     const btAlignedObjectArray<btRigidBody*>& getDynamicObjects() const

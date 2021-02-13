@@ -12,6 +12,7 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
     mID(id),
     mInstance(inst),
     mCamera(nullptr),
+    mShadowCamera(nullptr),
     mPosition(pos),
     mDirection(dir),
     mCurrentState(Resting),
@@ -93,12 +94,13 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 
         btRigidBody* body = world->getRigidBody(mID);
         btTransform& transform = body->getWorldTransform();
-        transform.setOrigin({mPosition.x, mCentralHeight + mPosition.y,mPosition.z});
-        body->setWorldTransform(transform);
+        body->translate({mDirection.x, mDirection.y, mDirection.z});
         body->activate(true);
-
-        updateRenderinstance();
+        const btVector3& origin =  transform.getOrigin();
+        mPosition = {origin.x(), origin.y() - mCentralHeight, origin.z()};
     }
+
+    updateRenderinstance();
 
     if(mCurrentState == Resting && moving)
     {

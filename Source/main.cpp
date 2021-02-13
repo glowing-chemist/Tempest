@@ -24,9 +24,9 @@ void setupGraphicsState(Engine* eng)
     eng->registerPass(PassType::Composite);
     eng->registerPass(PassType::Animation);
     eng->registerPass(PassType::LineariseDepth);
-//#ifndef NDEBUG
+#ifndef NDEBUG
     eng->registerPass(PassType::DebugAABB);
-//#endif
+#endif
 }
 
 
@@ -97,23 +97,54 @@ int main()
     const SceneID planeID = testScene.addMesh(*floor, MeshType::Static);
     const SceneID cubeID = testScene.addMesh(*cube, MeshType::Static);
 
-    const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID, kInvalidInstanceID, float4x4(1.0f), 0, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion, "Player");
-    physicsWorld->addObject(player1Instance, Tempest::PhysicsEntityType::StaticRigid, Tempest::BasicCollisionGeometry::Capsule, float3{0.0f, 0.0f, 0.0f}, float3{0.25f, 0.5f, 0.25f}, 60.0f);
+    const InstanceID player1Instance = testScene.addMeshInstance(player1MeshID,
+                                                                 kInvalidInstanceID,
+                                                                 glm::scale(float4x4(1.0f), {0.01f, 0.01f, 0.01f}),
+                                                                 0,
+                                                                 MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals | MaterialType::AmbientOcclusion,
+                                                                 "Player");
+    physicsWorld->addObject(player1Instance,
+                            Tempest::PhysicsEntityType::DynamicRigid,
+                            Tempest::BasicCollisionGeometry::Capsule,
+                            float3{0.0f, 0.0f, 0.0f},
+                            float3{0.125f, 0.25f, 0.125f},
+                            60.0f);
     // Restrict player capsule rotation
     {
         btRigidBody *playerCapsule = physicsWorld->getRigidBody(player1Instance);
         playerCapsule->setAngularFactor({0.0f, 1.0f, 0.0f});
     }
+    std::vector<InstanceID> pillarInstanes{};
     for(float x = -10.0f; x < 10.0f; x += 1.5f)
     {
         for(float y = -10.0f; y < 10.0f; y += 1.5f)
         {
-            const InstanceID pillarID = testScene.addMeshInstance(cubeID, kInvalidInstanceID, glm::translate(float3{ x, 0.5f, y }) * glm::scale(float3(30.0f, 100.0f, 30.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals, "Pillar");
-            physicsWorld->addObject(pillarID, Tempest::PhysicsEntityType::StaticRigid, Tempest::BasicCollisionGeometry::Box, float3{ x, 0.5f, y }, float3(30.0f, 100.0f, 30.0f));
+            const InstanceID pillarID = testScene.addMeshInstance(cubeID,
+                                                                  kInvalidInstanceID,
+                                                                  testScene.getRootTransform() * glm::translate(float3{ x, 0.5f, y }) *
+                                                                  glm::scale(float3(30.0f, 100.0f, 30.0f)),
+                                                                  5,
+                                                                  MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals,
+                                                                  "Pillar");
+            physicsWorld->addObject(pillarID,
+                                    Tempest::PhysicsEntityType::StaticRigid,
+                                    Tempest::BasicCollisionGeometry::Box,
+                                    float3{ x, 0.0f, y },
+                                    float3(0.6f, 3.0f, 0.6f));
+            pillarInstanes.push_back(pillarID);
         }
     }
-    const InstanceID groundInstance =  testScene.addMeshInstance(planeID, kInvalidInstanceID, glm::scale(float3(1000.0f, 1000.0f, 1000.0f)) *  glm::rotate(glm::radians(-90.0f), float3(1.0f, 0.0f, 0.0f)), 5, MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals, "Ground plane");
-    physicsWorld->addObject(groundInstance, Tempest::PhysicsEntityType::StaticRigid, Tempest::BasicCollisionGeometry::Plane, float3{0.0f, 1.0f, 0.0f}, float3{});
+    const InstanceID groundInstance =  testScene.addMeshInstance(planeID,
+                                                                 kInvalidInstanceID,
+                                                                 testScene.getRootTransform() * glm::scale(float3(1000.0f, 1.0f, 1000.0f)) *  glm::rotate(glm::radians(-90.0f),float3(1.0f, 0.0f, 0.0f)),
+                                                                 5,
+                                                                 MaterialType::Albedo | MaterialType::Metalness | MaterialType::Roughness | MaterialType::Normals,
+                                                                 "Ground plane");
+    physicsWorld->addObject(groundInstance,
+                            Tempest::PhysicsEntityType::StaticRigid,
+                            Tempest::BasicCollisionGeometry::Plane,
+                            float3{0.0f, 0.0f, 0.0f},
+                            float3{});
 
 
     testScene.loadMaterials(eng);
@@ -170,12 +201,32 @@ int main()
         }
         controller1->update(window);
 
-        btRigidBody* playerBody = physicsWorld->getRigidBody(player1Instance);
-        btVector3 playerMin, playerMax;
-        playerBody->getAabb(playerMin, playerMax);
-        printf("player min %f %f %f\n", playerMin.x(), playerMin.y(), playerMin.z());
-        eng->addDebugAABB({float4{playerMin.x(), playerMin.y(), playerMin.z(), 0.0f},
-                           float4{playerMax.x(), playerMax.y(), playerMax.z(), 0.0f}});
+        if(glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+        {
+            {
+                btRigidBody *playerBody = physicsWorld->getRigidBody(player1Instance);
+                btVector3 playerMin, playerMax;
+                playerBody->getAabb(playerMin, playerMax);
+                eng->addDebugAABB({float4{playerMin.x(), playerMin.y(), playerMin.z(), 0.0f},
+                                   float4{playerMax.x(), playerMax.y(), playerMax.z(), 0.0f}});
+            }
+
+            {
+                btRigidBody *groundBody = physicsWorld->getRigidBody(groundInstance);
+                btVector3 groundMin, groundMax;
+                groundBody->getAabb(groundMin, groundMax);
+                eng->addDebugAABB({float4{groundMin.x(), groundMin.y(), groundMin.z(), 0.0f},
+                                   float4{groundMax.x(), groundMax.y(), groundMax.z(), 0.0f}});
+            }
+
+            for (InstanceID id : pillarInstanes) {
+                btRigidBody *pillarBody = physicsWorld->getRigidBody(id);
+                btVector3 pillarMin, pillarMax;
+                pillarBody->getAabb(pillarMin, pillarMax);
+                eng->addDebugAABB({float4{pillarMin.x(), pillarMin.y(), pillarMin.z(), 0.0f},
+                                   float4{pillarMax.x(), pillarMax.y(), pillarMax.z(), 0.0f}});
+            }
+        }
 
         {
             renderThread.update(shouldClose, firstFrame);
@@ -184,16 +235,6 @@ int main()
             scriptEngine.tick(frameDelta);
 
             player1->update(controller1, eng, physicsWorld);
-
-            std::vector<Scene::Intersection> collisions = testScene.getIntersections(player1Instance);
-            for(const auto& collision : collisions)
-            {
-                if(collision.mEntry2->getName() == "Pillar")
-                {
-                    player1->undoMove();
-                    break;
-                }
-            }
 
             renderThread.unlock(lock);
         }
