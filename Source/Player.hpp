@@ -5,8 +5,9 @@
 #include "Engine/Scene.h"
 
 
-static constexpr const char kWalkingAnimation[] = "Armature|Walk";
-static constexpr const char kJumpAnimation[] = "Armature|Kick";
+static constexpr const char kWalkingAnimation[] = "Armature|Armature|Armature|Walk|Armature|Walk";
+static constexpr const char kSprintAnimation[] = "Armature|Armature|mixamo.com|Layer0";
+static constexpr const char kJumpAnimation[] = "Armature|Armature|mixamo.com|Layer1";
 
 class Controller;
 
@@ -98,6 +99,7 @@ private:
     {
         Resting,
         Walking,
+        Sprinting,
         Jumping,
         Kicking
     };

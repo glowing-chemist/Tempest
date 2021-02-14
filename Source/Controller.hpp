@@ -41,6 +41,11 @@ public:
         return mButtons[0] == GLFW_RELEASE;
     }
 
+    bool ctrlPressed() const
+    {
+        return mCtlPressed;
+    }
+
 private:
 
     const char* mName;
@@ -49,6 +54,7 @@ private:
     float mAxis[6];
 
     unsigned char mButtons[8];
+    bool mCtlPressed;
 
     double mMouseX, mMouseY;
     bool mHardwareController;

@@ -33,6 +33,14 @@ Level::Level(Engine *eng, const std::filesystem::path& path, const std::string& 
         {
             addLight(entityName, entity);
         }
+        else if(type.asString() == "MATERIAL")
+        {
+            addMaterial(entityName, entity);
+        }
+        else if(type.asString() == "SCRIPT")
+        {
+            addScript(entityName, entity);
+        }
         else
         {
             BELL_TRAP; // unknown type
@@ -62,6 +70,16 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
 
 void Level::addLight(const std::string& name, const Json::Value& entry)
+{
+
+}
+
+void Level::addMaterial(const std::string &name, const Json::Value &entry)
+{
+
+}
+
+void Level::addScript(const std::string &name, const Json::Value &entry)
 {
 
 }

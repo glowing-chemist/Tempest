@@ -33,6 +33,8 @@ private:
     void addMesh(const std::string& name, const Json::Value& entry);
     void addMeshInstance(const std::string& name, const Json::Value& entry);
     void addLight(const std::string& name, const Json::Value& entry);
+    void addMaterial(const std::string& name, const Json::Value& entry);
+    void addScript(const std::string& name, const Json::Value& entry);
 
     std::string mName;
 

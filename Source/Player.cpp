@@ -42,8 +42,9 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 {
     PROFILER_EVENT();
 
-    const float x = controller->getLeftAxisX() * 0.01f;
-    const float z = controller->getLeftAxisY() * 0.01f;
+    const bool sprinting = controller->ctrlPressed();
+    const float x = controller->getLeftAxisX() * (sprinting ? 0.05f : 0.01f);
+    const float z = controller->getLeftAxisY() * (sprinting ? 0.05f : 0.01f);
     const bool moving = (x != 0.0f || z != 0.0f);
 
     // update attached camera
@@ -67,10 +68,7 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 
     if(mShadowCamera && moving)
     {
-        float3 position = mShadowCamera->getPosition();
-        position += float3(mDirection.x, 0.0f, mDirection.z);
-
-        mShadowCamera->setPosition(position);
+        mShadowCamera->setPosition({mPosition.x, 10.0f, mPosition.z} );
     }
 
     if(mCoolDownCounter > 0)
@@ -102,27 +100,42 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 
     updateRenderinstance();
 
-    if(mCurrentState == Resting && moving)
+    if(moving && sprinting && mCurrentState == Resting)
     {
+        eng->startAnimation(mID, kSprintAnimation, true, 2.0f);
+        mCurrentState = Sprinting;
+    }
+    else if(moving && sprinting && mCurrentState == Walking)
+    {
+        eng->terimateAnimation(mID, kWalkingAnimation);
+        eng->startAnimation(mID, kSprintAnimation, true, 2.0f);
+        mCurrentState = Sprinting;
+    }
+    else if((mCurrentState == Resting || mCurrentState == Sprinting) && moving && !sprinting)
+    {
+        if(mCurrentState == Sprinting)
+            eng->terimateAnimation(mID, kSprintAnimation);
         eng->startAnimation(mID, kWalkingAnimation, true);
         mCurrentState = Walking;
     }
-    else if(mCurrentState == Walking && !moving)
+    else if((mCurrentState == Walking || mCurrentState == Sprinting) && !moving)
     {
         eng->terimateAnimation(mID, kWalkingAnimation);
+        eng->terimateAnimation(mID, kSprintAnimation);
         mCurrentState = Resting;
     }
 
     if(controller->pressedX() && mCurrentState != Jumping)
     {
-        if(mCurrentState == Walking)
+        if(mCurrentState == Walking || mCurrentState == Sprinting)
         {
             eng->terimateAnimation(mID, kWalkingAnimation);
+            eng->terimateAnimation(mID, kSprintAnimation);
         }
 
         mCurrentState = Jumping;
 
-        //eng->startAnimation(mID, kJumpAnimation, false, 4.0f);
+        eng->startAnimation(mID, kJumpAnimation, false);
         if(!body->isActive())
             body->activate(true);
         body->applyCentralImpulse({0.0f, 400.0f, 0.0f});

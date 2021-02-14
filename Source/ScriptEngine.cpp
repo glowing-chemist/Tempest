@@ -39,6 +39,19 @@ void ScriptEngine::tick(const std::chrono::microseconds delta)
 
     lua_pushinteger(mState, delta.count());
     call_lua_func("main", 1, 0);
+
+    for(uint32_t iContext = 0; iContext < kContext_Count; ++iContext)
+    {
+        for(const auto&[name, entities] : mComponentScripts[iContext])
+        {
+            for(const auto entity : entities)
+            {
+                lua_pushinteger(mState, entity);
+                lua_pushinteger(mState, delta.count());
+                call_lua_func(name.c_str(), 2, 0);
+            }
+        }
+    }
 }
 
 

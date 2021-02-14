@@ -91,7 +91,7 @@ int main()
                                        "./Assets/Textures/bluecloud_rt.jpg",
                                        "./Assets/Textures/bluecloud_lf.jpg" };
     testScene.loadSkybox(skybox, eng);
-    Camera shadowCam(float3(-1.0f, 0.1f, -1.0f), glm::normalize(float3(1.0f, -1.0f, 1.0f)), 1.0f, 0.1f, 9.0f, 90.0f, CameraMode::Orthographic);
+    Camera shadowCam(float3(0.0f, 10.0f, 0.0f), glm::normalize(float3(1.0f, -10.0f, 1.0f)), 1.0f, 0.1f, 12.0f, 90.0f, CameraMode::Orthographic);
     shadowCam.setOrthographicSize(float2{10, 10});
     testScene.setShadowingLight(shadowCam);
 

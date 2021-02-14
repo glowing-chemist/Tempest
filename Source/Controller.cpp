@@ -10,6 +10,7 @@ Controller::Controller(const int id) : mID(id),
     mMouseX(0.0),
     mMouseY(0.0)
 {
+    mCtlPressed = false;
     const int present = glfwJoystickPresent(mID);
     if(present == GLFW_TRUE)
         mHardwareController = true;
@@ -71,5 +72,6 @@ void Controller::update(GLFWwindow* window)
         if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_SPACE : GLFW_KEY_U) == GLFW_PRESS)
             mButtons[0] = GLFW_PRESS;
 
+        mCtlPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
     }
 }
