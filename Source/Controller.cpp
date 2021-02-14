@@ -68,7 +68,7 @@ void Controller::update(GLFWwindow* window)
         mAxis[4] = (y - mMouseY) / 10.0;
         mMouseY = y;
 
-        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_Q : GLFW_KEY_U) == GLFW_PRESS)
+        if(glfwGetKey(window, mID == GLFW_JOYSTICK_1 ? GLFW_KEY_SPACE : GLFW_KEY_U) == GLFW_PRESS)
             mButtons[0] = GLFW_PRESS;
 
     }

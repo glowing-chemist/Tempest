@@ -24,9 +24,11 @@ void setupGraphicsState(Engine* eng)
     eng->registerPass(PassType::Composite);
     eng->registerPass(PassType::Animation);
     eng->registerPass(PassType::LineariseDepth);
-#ifndef NDEBUG
+    //eng->registerPass(PassType::TAA);
+    //eng->registerPass(PassType::SSAO);
+//#ifndef NDEBUG
     eng->registerPass(PassType::DebugAABB);
-#endif
+//#endif
 }
 
 
@@ -159,7 +161,7 @@ int main()
     setupGraphicsState(eng);
 
     Camera& camera = eng->getCurrentSceneCamera();
-    camera.setFarPlane(200.0f);
+    camera.setFarPlane(100.0f);
 
     Tempest::ScriptEngine scriptEngine(eng, &testScene);
 

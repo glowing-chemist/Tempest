@@ -57,7 +57,7 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
         const float3 right = mCamera->getRight();
 
         glm::float4x4 rotation = glm::rotate(-0.1f * cx, float3(0.0f, 1.0f, 0.0f)) * glm::rotate(-0.1f * cz, right);
-        const float4 positionOffset = float4(float3((mArmatureLength * direction) + float3(0.0f, -mCentralHeight - mPosition.y, 0.0f)), 0.0f);
+        const float4 positionOffset = float4(float3((mArmatureLength * direction) + float3(0.0f, mCentralHeight, 0.0f)), 0.0f);
         position = mPosition - float3(positionOffset * rotation);
         direction = glm::normalize(float4(direction, 0.0f) * rotation);
 
@@ -122,12 +122,12 @@ void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsW
 
         mCurrentState = Jumping;
 
-        eng->startAnimation(mID, kJumpAnimation, false, 4.0f);
+        //eng->startAnimation(mID, kJumpAnimation, false, 4.0f);
         if(!body->isActive())
             body->activate(true);
-        body->applyCentralImpulse({0.0f, 300.0f, 0.0f});
+        body->applyCentralImpulse({0.0f, 400.0f, 0.0f});
 
-        mCoolDownCounter = 40;
+        mCoolDownCounter = 80;
     }
     else if(controller->releasedX())
     {
