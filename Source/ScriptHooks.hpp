@@ -21,6 +21,14 @@
     return callable->callFunction(L);					\
 }
 
+#define LUA_REGISTER_HOOK(C, F, I) \
+    { \
+        auto* callable = new Tempest::ScriptableCallable(&C::F, I); \
+        const std::string name = LUA_SCRIPT_HOOK_NAME(C, F); \
+        registrar->registerLuaCallable(name, callable); \
+        Tempest::s_dispatchFunctions[name] = &C ## _ ## F;      \
+    }
+
 template<typename ...S>
 struct LuaStack{};
 
@@ -84,16 +92,16 @@ int executeCallback_impl(lua_State* L, F f, I* instance, const uint32_t stackDep
 template<typename F, typename I, template <typename...> class S, typename...Args>
 int executeCallback_impl(lua_State*, F f, I* instance, const uint32_t, S<>, Args ...args)
 {
-    if constexpr (std::is_same<typename std::invoke_result<F, Args...>::type, void>::value)
+    if constexpr (std::is_same_v<typename std::invoke_result_t<decltype(f), I, Args...>, void>)
     {
-	std::invoke(f, instance, args...);
-	return 0;
+        std::invoke(f, instance, args...);
+        return 0;
     }
     else
     {
-	const auto result = std::invoke(f, instance, args...);
-	pushLuaStack(result);
-	return 1;
+        const auto result = std::invoke(f, instance, args...);
+        pushLuaStack(result);
+        return 1;
     }
 }
 

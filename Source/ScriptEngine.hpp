@@ -40,6 +40,13 @@ struct ExtractClassType<R (C::*)(Args...)>
     using RETURN = R;
 };
 
+template<typename C, typename R, typename ...Args>
+struct ExtractClassType<R (C::*)(Args...) const>
+{
+    using CLASS = C;
+    using RETURN = R;
+};
+
 class ScriptableCallableBase
 {
 public:
@@ -52,7 +59,7 @@ public:
 extern std::unordered_map<std::string, int(*)(lua_State*)> s_dispatchFunctions;
 
 template<typename F, typename ...Args>
-class ScriptableCallable : ScriptableCallableBase
+class ScriptableCallable : public ScriptableCallableBase
 {
 public:
 

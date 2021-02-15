@@ -9,6 +9,7 @@
 #include "Player.hpp"
 #include "RenderThread.hpp"
 #include "ScriptEngine.hpp"
+#include "ScriptableScene.hpp"
 #include "PhysicsWorld.hpp"
 
 
@@ -26,9 +27,9 @@ void setupGraphicsState(Engine* eng)
     eng->registerPass(PassType::LineariseDepth);
     //eng->registerPass(PassType::TAA);
     //eng->registerPass(PassType::SSAO);
-//#ifndef NDEBUG
+#ifndef NDEBUG
     eng->registerPass(PassType::DebugAABB);
-//#endif
+#endif
 }
 
 
@@ -164,6 +165,7 @@ int main()
     camera.setFarPlane(100.0f);
 
     Tempest::ScriptEngine scriptEngine(eng, &testScene);
+    registerSceneLuaHooks(&scriptEngine, &testScene);
 
     Player* player1 = new Player(player1Instance, testScene.getMeshInstance(player1Instance), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, -1.0f));
     player1->attachCamera(camera, 1.2f);
