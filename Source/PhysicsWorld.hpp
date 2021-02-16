@@ -113,7 +113,7 @@ private:
             uint64_t h = hasher(e.mScale.x);
             h ^= hasher(e.mScale.y);
             h ^= hasher(e.mScale.z);
-            h &= std::hash<uint32_t>{}(static_cast<uint32_t>(e.mType));
+            h ^= std::hash<uint32_t>{}(static_cast<uint32_t>(e.mType));
 
             return h;
         };

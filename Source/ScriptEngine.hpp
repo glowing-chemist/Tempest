@@ -69,7 +69,7 @@ public:
 
     virtual int callFunction(lua_State* L) override
     {
-        return executeCallback<F, ExtractClassType<F>::CLASS, Args...>(L, mF, mSystem);
+        return executeCallback<F, typename ExtractClassType<F>::CLASS, Args...>(L, mF, mSystem);
     }
 
 private:
