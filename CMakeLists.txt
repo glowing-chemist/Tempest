@@ -23,7 +23,11 @@ include_directories(	"${BELL_PATH}"
 			"${BELL_PATH}/ThirdParty/stb_image"
 			"Source/lua/src"
 			"Source/bullet3/src/"
-			"Source/jsoncpp/include")
+			"Source/jsoncpp/include"
+		"Source/Physics"
+		"Source/Graphics"
+		"Source/GamePlay"
+		"Source/Scripting")
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/")
 
@@ -63,15 +67,15 @@ set(LUA_SOURCE
 
 set(ENGINE_SOURCE
     Source/main.cpp
-    Source/Player.cpp
-    Source/Controller.cpp
-    Source/RenderThread.cpp
-    Source/ScriptEngine.cpp
+    Source/GamePlay/Player.cpp
+    Source/GamePlay/Controller.cpp
+    Source/Graphics/RenderThread.cpp
+    Source/Scripting/ScriptEngine.cpp
     Source/Level.cpp
     Source/TempestEngine.cpp
-    Source/PhysicsWorld.cpp
-    Source/NavMesh.cpp
-    Source/ScriptableScene.cpp)
+    Source/Physics/PhysicsWorld.cpp
+    Source/GamePlay/NavMesh.cpp
+    Source/Scripting/ScriptableScene.cpp)
 
 set(BULLET
     BulletInverseDynamics
