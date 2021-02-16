@@ -5,7 +5,7 @@
 #include <mutex>
 #include <thread>
 
-class Engine;
+class RenderEngine;
 
 namespace Tempest
 {
@@ -13,7 +13,7 @@ namespace Tempest
 class RenderThread
 {
 public:
-    RenderThread(Engine*);
+    RenderThread(RenderEngine*);
     ~RenderThread();
 
     RenderThread(const RenderThread&) = delete;
@@ -29,7 +29,7 @@ public:
     // Kick render thread.
     void unlock(std::unique_lock<std::mutex>&);
 
-    Engine* mEngine;
+    RenderEngine* mEngine;
 
     std::thread mThread;
     bool mProcessed = true;

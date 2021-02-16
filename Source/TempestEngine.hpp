@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-class Engine;
+class RenderEngine;
 struct GLFWwindow;
 
 namespace Tempest
@@ -22,7 +22,7 @@ public:
 private:
 
     std::filesystem::path mRootDir;
-    Engine* mEngine;
+    RenderEngine* mEngine;
     RenderThread* mRenderThread;
 
 };

@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 
-class Engine;
+class RenderEngine;
 class Scene;
 
 namespace Tempest
@@ -105,7 +105,7 @@ class ScriptEngine
 {
 public:
 
-    ScriptEngine(Engine* eng, Scene*);
+    ScriptEngine(RenderEngine* eng, Scene*);
     ~ScriptEngine();
 
     void tick(const std::chrono::microseconds);
@@ -152,7 +152,7 @@ private:
     std::unordered_map<std::string, ScriptableCallableBase*> mCallables;
 
     lua_State* mState;
-    Engine* mEngine;
+    RenderEngine* mEngine;
     Scene* mScene;
 };
 

@@ -9,7 +9,7 @@ namespace Tempest
 ScriptEngine* s_scriptEngine;
 std::unordered_map<std::string, int(*)(lua_State*)> s_dispatchFunctions;
 
-ScriptEngine::ScriptEngine(Engine* eng, Scene* scene) :
+ScriptEngine::ScriptEngine(RenderEngine* eng, Scene* scene) :
     mState(nullptr),
     mEngine(eng),
     mScene(scene)

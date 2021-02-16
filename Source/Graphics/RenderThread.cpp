@@ -46,7 +46,7 @@ void run(Tempest::RenderThread* thread)
 namespace Tempest
 {
 
-RenderThread::RenderThread(Engine* eng) :
+RenderThread::RenderThread(RenderEngine* eng) :
     mEngine(eng)
 {
     mThread = std::thread(run, this);

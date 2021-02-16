@@ -13,7 +13,7 @@
 #include "PhysicsWorld.hpp"
 
 
-void setupGraphicsState(Engine* eng)
+void setupGraphicsState(RenderEngine* eng)
 {
     eng->registerPass(PassType::DepthPre);
     eng->registerPass(PassType::Shadow);
@@ -43,7 +43,7 @@ int main()
     auto* window = glfwCreateWindow(1920, 1080, "Tempest", nullptr, nullptr);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Engine* eng = new Engine(window);
+    RenderEngine* eng = new RenderEngine(window);
     eng->setShadowMapResolution({1024.0f, 1024.0f});
 
     eng->startFrame(std::chrono::microseconds(0));

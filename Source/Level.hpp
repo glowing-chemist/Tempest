@@ -16,7 +16,7 @@ namespace Tempest
 class Level
 {
 public:
-    Level(Engine* eng, const std::filesystem::path& path, const std::string& name);
+    Level(RenderEngine* eng, const std::filesystem::path& path, const std::string& name);
 
     Scene* getScene()
     {
@@ -42,7 +42,7 @@ private:
     std::unordered_map<std::string, SceneID> mInstanceIDs;
 
     std::unique_ptr<Scene> mScene;
-    Engine* mEngine;
+    RenderEngine* mEngine;
 };
 
 }

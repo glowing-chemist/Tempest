@@ -23,7 +23,7 @@ public:
     Player(InstanceID id, MeshInstance* inst, const float3& pos, const float3& dir);
     ~Player() = default;
 
-    void update(const Controller*, Engine*, Tempest::PhysicsWorld* world);
+    void update(const Controller*, RenderEngine*, Tempest::PhysicsWorld* world);
 
     void applyForce(const float3& dir)
     {
@@ -81,7 +81,7 @@ public:
 
 private:
 
-    void updateHitBoxes(Engine *eng);
+    void updateHitBoxes(RenderEngine *eng);
     void updateRenderinstance();
 
     InstanceID mID;

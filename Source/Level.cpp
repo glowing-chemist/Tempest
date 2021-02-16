@@ -5,7 +5,7 @@
 namespace Tempest
 {
 
-Level::Level(Engine *eng, const std::filesystem::path& path, const std::string& name) :
+Level::Level(RenderEngine *eng, const std::filesystem::path& path, const std::string& name) :
     mName(name),
     mScene(new Scene(path)),
     mEngine(eng)

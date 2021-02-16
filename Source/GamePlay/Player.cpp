@@ -38,7 +38,7 @@ Player::Player(InstanceID id, MeshInstance* inst, const float3 &pos, const float
 }
 
 
-void Player::update(const Controller* controller, Engine* eng, Tempest::PhysicsWorld* world)
+void Player::update(const Controller* controller, RenderEngine* eng, Tempest::PhysicsWorld* world)
 {
     PROFILER_EVENT();
 
@@ -176,9 +176,9 @@ void Player::undoMove()
 }
 
 
-void Player::updateHitBoxes(Engine* eng)
+void Player::updateHitBoxes(RenderEngine* eng)
 {
-    const std::vector<Engine::SkeletalAnimationEntry>& activeAnims = eng->getActiveSkeletalAnimations();
+    const std::vector<RenderEngine::SkeletalAnimationEntry>& activeAnims = eng->getActiveSkeletalAnimations();
     bool foundAnim = false;
     const std::vector<StaticMesh::Bone>& skeleton = mInstance->getMesh()->getSkeleton();
     for(const auto& anim : activeAnims)
