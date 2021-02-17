@@ -1,4 +1,5 @@
 #include "ScriptEngine.hpp"
+#include "ScriptableScene.hpp"
 
 #include "Include/Engine/Engine.hpp"
 #include "Include/Engine/Scene.h"
@@ -9,10 +10,8 @@ namespace Tempest
 ScriptEngine* s_scriptEngine;
 std::unordered_map<std::string, int(*)(lua_State*)> s_dispatchFunctions;
 
-ScriptEngine::ScriptEngine(RenderEngine* eng, Scene* scene) :
-    mState(nullptr),
-    mEngine(eng),
-    mScene(scene)
+ScriptEngine::ScriptEngine() :
+    mState(nullptr)
 {
     mState = luaL_newstate();
     luaL_openlibs(mState);
@@ -85,6 +84,10 @@ void ScriptEngine::load_script(const char* f)
     BELL_ASSERT(!error, "Failed to load script file")
 }
 
+void ScriptEngine::registerSceneHooks(Scene* s)
+{
+    registerSceneLuaHooks(this, s);
+}
 
 ScriptEngine* getScriptEngine()
 {

@@ -146,6 +146,7 @@ inline float3 popLuaStack(lua_State* L, uint32_t& i)
     v.y = getTableEntry<float>(L, "y");
     v.z = getTableEntry<float>(L, "z");
 
+    ++i;
     return v;
 }
 

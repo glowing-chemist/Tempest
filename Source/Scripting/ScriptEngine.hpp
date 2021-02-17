@@ -105,7 +105,7 @@ class ScriptEngine
 {
 public:
 
-    ScriptEngine(RenderEngine* eng, Scene*);
+    ScriptEngine();
     ~ScriptEngine();
 
     void tick(const std::chrono::microseconds);
@@ -139,6 +139,8 @@ public:
         return mCallables[name];
     }
 
+    void registerSceneHooks(Scene*);
+
 private:
 
     void pushArgsOnStack(const int64_t entity, const ScriptContext);
@@ -152,8 +154,6 @@ private:
     std::unordered_map<std::string, ScriptableCallableBase*> mCallables;
 
     lua_State* mState;
-    RenderEngine* mEngine;
-    Scene* mScene;
 };
 
 ScriptEngine* getScriptEngine();

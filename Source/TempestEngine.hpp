@@ -8,8 +8,8 @@ struct GLFWwindow;
 
 namespace Tempest
 {
-
-class RenderThread;
+    class ScriptEngine;
+    class RenderThread;
 
 class TempestEngine
 {
@@ -22,8 +22,9 @@ public:
 private:
 
     std::filesystem::path mRootDir;
-    RenderEngine* mEngine;
+    RenderEngine* mRenderEngine;
     RenderThread* mRenderThread;
+    ScriptEngine* mScriptEngine;
 
 };
 
