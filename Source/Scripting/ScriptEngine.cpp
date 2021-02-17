@@ -1,5 +1,7 @@
 #include "ScriptEngine.hpp"
 #include "ScriptableScene.hpp"
+#include "ScriptableEngine.hpp"
+#include "ScriptableRenderer.hpp"
 
 #include "Include/Engine/Engine.hpp"
 #include "Include/Engine/Scene.h"
@@ -88,6 +90,19 @@ void ScriptEngine::registerSceneHooks(Scene* s)
 {
     registerSceneLuaHooks(this, s);
 }
+
+
+void ScriptEngine::registerEngineHooks(TempestEngine* engine)
+{
+    registerEngineLuaHooks(this, engine);
+}
+
+
+void ScriptEngine::registerPhysicsHooks(PhysicsWorld*)
+{
+
+}
+
 
 ScriptEngine* getScriptEngine()
 {

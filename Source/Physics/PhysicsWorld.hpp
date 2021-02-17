@@ -50,8 +50,13 @@ public:
 
     btRigidBody* getRigidBody(const InstanceID id)
     {
-        const uint32_t index = mInstanceMap[id];
-        return mRigidBodies[index].get();
+        if(auto it = mInstanceMap.find(id); it != mInstanceMap.end())
+        {
+            const uint32_t index = it->second;
+            return mRigidBodies[index].get();
+        }
+        else
+            return nullptr;
     }
 
     const btAlignedObjectArray<btRigidBody*>& getDynamicObjects() const
@@ -74,6 +79,9 @@ public:
         BasicCollisionGeometry mType;
         float3 mScale;
     };
+
+    void setInstancePosition(const InstanceID, const float3&);
+    void translateInstance(const InstanceID, const float3&);
 
 private:
 

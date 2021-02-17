@@ -62,6 +62,9 @@ void PhysicsWorld::addObject(const InstanceID id,
     btRigidBody* body = new btRigidBody(rbInfo);
     body->setUserIndex(id);
 
+    if(collisionGeometry == BasicCollisionGeometry::Capsule)
+        body->setAngularFactor({0.0f, 1.0f, 0.0f});
+
     if(mFreeRigidBodyIndices.empty())
     {
         const uint32_t index = mRigidBodies.size();
@@ -148,5 +151,34 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
 
     return shape;
 }
+
+    void PhysicsWorld::setInstancePosition(const InstanceID id, const float3& v)
+    {
+        btRigidBody* body = getRigidBody(id);
+        if(body)
+        {
+            btTransform &transform = body->getWorldTransform();
+            transform.setOrigin({v.x, v.y, v.z});
+            body->setWorldTransform(transform);
+
+            if (!body->isActive())
+                body->activate(true);
+        }
+    }
+
+
+    void PhysicsWorld::translateInstance(const InstanceID id, const float3& v)
+    {
+        btRigidBody* body = getRigidBody(id);
+        if(body) {
+            btTransform &transform = body->getWorldTransform();
+            btVector3 origin = transform.getOrigin();
+            transform.setOrigin({origin.x() + v.x, origin.y() + v.y, origin.z() + v.z});
+            body->setWorldTransform(transform);
+
+            if (!body->isActive())
+                body->activate(true);
+        }
+    }
 
 }

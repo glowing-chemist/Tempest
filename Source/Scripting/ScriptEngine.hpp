@@ -15,6 +15,8 @@ class Scene;
 
 namespace Tempest
 {
+    class PhysicsWorld;
+    class TempestEngine;
 
 enum ScriptContext : uint32_t
 {
@@ -140,6 +142,8 @@ public:
     }
 
     void registerSceneHooks(Scene*);
+    void registerEngineHooks(TempestEngine*);
+    void registerPhysicsHooks(PhysicsWorld*);
 
 private:
 

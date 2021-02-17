@@ -75,7 +75,9 @@ set(ENGINE_SOURCE
     Source/TempestEngine.cpp
     Source/Physics/PhysicsWorld.cpp
     Source/GamePlay/NavMesh.cpp
-    Source/Scripting/ScriptableScene.cpp)
+    Source/Scripting/ScriptableScene.cpp
+		Source/Scripting/ScriptableEngine.cpp
+		Source/Scripting/ScriptableRenderer.cpp)
 
 set(BULLET
     BulletInverseDynamics
