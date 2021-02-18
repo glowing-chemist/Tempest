@@ -2,6 +2,9 @@
 
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCapsuleShape.h"
+#include "BulletCollision/CollisionShapes/btConcaveShape.h"
+#include "BulletCollision/CollisionShapes/btConvexShape.h"
+#include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -83,13 +86,65 @@ void PhysicsWorld::addObject(const InstanceID id,
 }
 
 void PhysicsWorld::addObject(const InstanceID id,
-                             const PhysicsEntityType,
+                             const CollisionMeshType type,
                              const StaticMesh &collisionGeometry,
                              const float3& pos,
-                             const float3& size,
-                             const float mass)
+                             const float3& scale)
 {
-    BELL_TRAP;
+    std::vector<float3> verticies(collisionGeometry.getVertexCount());
+    std::vector<int> indicies{};
+    indicies.reserve(collisionGeometry.getIndexData().size());
+    std::transform(collisionGeometry.getIndexData().begin(), collisionGeometry.getIndexData().end(), std::back_inserter(indicies),
+    [](const uint32_t i) {return static_cast<int>(i);} );
+    const uint32_t stride = collisionGeometry.getVertexStride();
+    const unsigned char* vertexData = collisionGeometry.getVertexData().data();
+    for(uint32_t i = 0; i < verticies.size(); ++i)
+    {
+        const float3* position = reinterpret_cast<const float3*>(vertexData);
+        verticies[i] = *position * scale;
+        vertexData += stride;
+    }
+
+    btTriangleIndexVertexArray* vertexArray = new btTriangleIndexVertexArray(indicies.size() / 3,
+                                                                            indicies.data(), sizeof(int),
+                                                                            verticies.size(), &verticies.data()->x, sizeof(float3));
+    mCollisionMeshes.push_back(vertexArray);
+
+    btCollisionShape* shape = nullptr;
+    if(type == CollisionMeshType::Concave)
+    {
+        BELL_TRAP;
+    }
+    else
+    {
+        shape = new btConvexTriangleMeshShape(vertexArray);
+    }
+
+    btTransform transform;
+    transform.setIdentity();
+    transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+
+    btVector3 localInertia = btVector3(0.0f, 0.0f, 0.0f);
+    btDefaultMotionState* myMotionState = new btDefaultMotionState(transform);
+    btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, shape, localInertia);
+    btRigidBody* body = new btRigidBody(rbInfo);
+    body->setUserIndex(id);
+
+    if(mFreeRigidBodyIndices.empty())
+    {
+        const uint32_t index = mRigidBodies.size();
+        mRigidBodies.emplace_back(body);
+        mInstanceMap[id] = index;
+    }
+    else
+    {
+        const uint32_t index = mFreeRigidBodyIndices.back();
+        mFreeRigidBodyIndices.pop_back();
+
+        mRigidBodies[index] = std::unique_ptr<btRigidBody>(body);
+    }
+
+    mWorld->addRigidBody(body);
 }
 
 void PhysicsWorld::removeObject(const InstanceID id)

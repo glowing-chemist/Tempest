@@ -17,6 +17,12 @@ enum class PhysicsEntityType
     StaticRigid
 };
 
+enum class CollisionMeshType
+{
+    Concave,
+    Convex
+};
+
 enum class BasicCollisionGeometry
 {
     Box = 0,
@@ -34,11 +40,10 @@ public:
     void tick(const std::chrono::microseconds diff);
 
     void addObject(const InstanceID id,
-                   const PhysicsEntityType,
+                   const CollisionMeshType,
                    const StaticMesh& collisionGeometry,
                    const float3& pos,
-                   const float3& size,
-                   const float mass = 0.0f);
+                   const float3& scale);
 
     void addObject(const InstanceID id,
                    const PhysicsEntityType type,
@@ -99,6 +104,7 @@ private:
 
     std::map<DefaultShapeCacheEntry, uint32_t> mDefaultShapeCache;
     btAlignedObjectArray<btCollisionShape*> mCollisionShapes;
+    btAlignedObjectArray<btStridingMeshInterface*> mCollisionMeshes;
 
     std::vector<uint32_t> mFreeRigidBodyIndices;
     std::vector<std::unique_ptr<btRigidBody>> mRigidBodies;

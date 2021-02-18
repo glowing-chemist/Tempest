@@ -38,8 +38,15 @@ private:
 
     std::string mName;
 
+    struct MaterialEntry
+    {
+        uint32_t mMaterialOffset;
+        uint32_t mMaterialFlags;
+    };
+
     std::unordered_map<std::string, SceneID> mAssetIDs;
     std::unordered_map<std::string, SceneID> mInstanceIDs;
+    std::unordered_map<std::string, MaterialEntry> mMaterials;
 
     std::unique_ptr<Scene> mScene;
     RenderEngine* mEngine;
