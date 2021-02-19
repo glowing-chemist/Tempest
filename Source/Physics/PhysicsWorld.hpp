@@ -14,7 +14,8 @@ namespace Tempest
 enum class PhysicsEntityType
 {
     DynamicRigid,
-    StaticRigid
+    StaticRigid,
+    Kinematic
 };
 
 enum class CollisionMeshType
