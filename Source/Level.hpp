@@ -13,10 +13,13 @@
 namespace Tempest
 {
 
+    class PhysicsWorld;
+    class ScriptEngine;
+
 class Level
 {
 public:
-    Level(RenderEngine* eng, const std::filesystem::path& path, const std::string& name);
+    Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine*, const std::filesystem::path& path, const std::string& name);
 
     Scene* getScene()
     {
@@ -35,6 +38,7 @@ private:
     void addLight(const std::string& name, const Json::Value& entry);
     void addMaterial(const std::string& name, const Json::Value& entry);
     void addScript(const std::string& name, const Json::Value& entry);
+    void processGlobals(const Json::Value& entry);
 
     std::string mName;
 
@@ -49,7 +53,9 @@ private:
     std::unordered_map<std::string, MaterialEntry> mMaterials;
 
     std::unique_ptr<Scene> mScene;
-    RenderEngine* mEngine;
+    RenderEngine* mRenderEngine;
+    PhysicsWorld* mPhysWorld;
+    ScriptEngine* mScriptEngine;
 };
 
 }

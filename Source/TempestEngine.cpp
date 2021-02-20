@@ -9,6 +9,7 @@ namespace Tempest
 {
     TempestEngine::TempestEngine(GLFWwindow *window, const std::filesystem::path& path) :
         mWindow(window),
+        mCurrentLevel{nullptr},
         mRootDir(path),
         mScene(nullptr)
     {
@@ -27,6 +28,12 @@ namespace Tempest
         delete mRenderEngine;
         delete mPhysicsEngine;
         delete mScriptEngine;
+    }
+
+
+    void LoadLevel(const std::string& path)
+    {
+
     }
 
 

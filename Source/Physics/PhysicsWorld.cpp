@@ -66,7 +66,7 @@ void PhysicsWorld::addObject(const InstanceID id,
     body->setUserIndex(id);
 
     if(type == PhysicsEntityType::Kinematic)
-        body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT)
+        body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 
     if(collisionGeometry == BasicCollisionGeometry::Capsule)
         body->setAngularFactor({0.0f, 1.0f, 0.0f});

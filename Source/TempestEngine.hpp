@@ -14,12 +14,16 @@ namespace Tempest
     class ScriptEngine;
     class RenderThread;
     class PhysicsWorld;
+    class Level;
 
 class TempestEngine
 {
 public:
     TempestEngine(GLFWwindow* window, const std::filesystem::path& rootDir);
     ~TempestEngine();
+
+    // Load level
+    void LoadLevel(const std::string& path);
 
     // main loop to be called once c++ side.
     void run();
@@ -40,6 +44,8 @@ private:
 
     bool mFirstFrame = true;
     bool mShouldClose = false;
+
+    Level* mCurrentLevel;
 
     std::filesystem::path mRootDir;
     Scene* mScene;
