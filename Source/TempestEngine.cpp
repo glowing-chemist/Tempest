@@ -2,6 +2,7 @@
 #include "RenderThread.hpp"
 #include "ScriptEngine.hpp"
 #include "PhysicsWorld.hpp"
+#include "Level.hpp"
 
 #include "Engine/Engine.hpp"
 
@@ -31,9 +32,12 @@ namespace Tempest
     }
 
 
-    void LoadLevel(const std::string& path)
+    void TempestEngine::loadLevel(const std::string& path)
     {
+        delete mCurrentLevel;
+        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, path, "test level");
 
+        mRenderEngine->setScene(mCurrentLevel->getScene());
     }
 
 
@@ -102,6 +106,29 @@ namespace Tempest
         mRenderEngine->terimateAnimation(id, name);
     }
 
+    InstanceID TempestEngine::getInstanceIDByName(const std::string& name) const
+    {
+        BELL_ASSERT(mCurrentLevel, "No level loaded")
+        return mCurrentLevel->getInstanceIDByName(name);
+    }
+
+    SceneID TempestEngine::getSceneIDByName(const std::string& name) const
+    {
+        BELL_ASSERT(mCurrentLevel, "No level loaded")
+        return mCurrentLevel->getSceneIDByname(name);
+    }
+
+    void TempestEngine::setMainCameraByName(const std::string& name)
+    {
+        BELL_ASSERT(mCurrentLevel, "No level loaded")
+        mCurrentLevel->setMainCameraByName(name);
+    }
+
+    void TempestEngine::setShadowCameraByName(const std::string& name)
+    {
+        BELL_ASSERT(mCurrentLevel, "No level loaded")
+        mCurrentLevel->setShadowCameraByName(name);
+    }
 
     void TempestEngine::setupGraphicsState()
     {

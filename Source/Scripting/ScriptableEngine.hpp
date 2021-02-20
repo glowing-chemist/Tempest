@@ -18,6 +18,14 @@ namespace Tempest {
 
     LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, terimateAnimation)
 
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, getInstanceIDByName)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, getSceneIDByName)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, setMainCameraByName)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, setShadowCameraByName)
+
 
     void registerEngineLuaHooks(ScriptEngine *eng, TempestEngine *scene);
 

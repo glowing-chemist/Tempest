@@ -23,7 +23,7 @@ public:
     ~TempestEngine();
 
     // Load level
-    void LoadLevel(const std::string& path);
+    void loadLevel(const std::string& path);
 
     // main loop to be called once c++ side.
     void run();
@@ -35,6 +35,12 @@ public:
 
     void startAnimation(const InstanceID id, const std::string& name, const bool loop, const float speedModifer);
     void terimateAnimation(const InstanceID id, const std::string& name);
+
+    InstanceID getInstanceIDByName(const std::string&) const;
+    SceneID getSceneIDByName(const std::string&) const;
+
+    void setMainCameraByName(const std::string&);
+    void setShadowCameraByName(const std::string&);
 
 private:
 

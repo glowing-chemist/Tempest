@@ -31,6 +31,24 @@ public:
         return mName;
     }
 
+    InstanceID getInstanceIDByName(const std::string& name) const
+    {
+        if(auto it = mInstanceIDs.find(name); it != mInstanceIDs.end())
+            return it->second;
+        else
+            return kInvalidInstanceID;
+    }
+    SceneID    getSceneIDByname(const std::string& name) const
+    {
+        if(auto it = mAssetIDs.find(name); it != mAssetIDs.end())
+            return it->second;
+        else
+            return kInvalidInstanceID;
+    }
+
+    void setMainCameraByName(const std::string&);
+    void setShadowCameraByName(const std::string&);
+
 private:
 
     void addMesh(const std::string& name, const Json::Value& entry);
@@ -38,7 +56,8 @@ private:
     void addLight(const std::string& name, const Json::Value& entry);
     void addMaterial(const std::string& name, const Json::Value& entry);
     void addScript(const std::string& name, const Json::Value& entry);
-    void processGlobals(const Json::Value& entry);
+    void addCamera(const std::string& name, const Json::Value& entry);
+    void processGlobals(const std::string& name, const Json::Value& entry);
 
     std::string mName;
 
@@ -48,6 +67,7 @@ private:
         uint32_t mMaterialFlags;
     };
 
+    std::unordered_map<std::string, Camera>  mCamera;
     std::unordered_map<std::string, SceneID> mAssetIDs;
     std::unordered_map<std::string, SceneID> mInstanceIDs;
     std::unordered_map<std::string, MaterialEntry> mMaterials;

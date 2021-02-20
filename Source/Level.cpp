@@ -1,4 +1,5 @@
 #include "Level.hpp"
+#include "Engine/Engine.hpp"
 #include "Engine/GeomUtils.h"
 
 #include "PhysicsWorld.hpp"
@@ -24,43 +25,26 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
     Json::Value sceneRoot;
     sceneFile >> sceneRoot;
 
-    for(const std::string& entityName : sceneRoot.getMemberNames())
+    std::array<std::string, 7> sections{"GLOBALS", "MESH", "MATERIALS", "INSTANCE", "LIGHT",
+                                        "CAMERA", "SCRIPT"};
+    std::array<void(Level::*)(const std::string&, const Json::Value&), 7> sectionFunctions
+        {
+            &Level::processGlobals, &Level::addMesh, &Level::addMaterial, &Level::addMeshInstance,
+            &Level::addLight, &Level::addCamera, &Level::addScript
+        };
+
+    for(uint32_t i = 0; i < sections.size(); ++i)
     {
-        Json::Value entity = sceneRoot[entityName];
-
-        if(entityName == "Globals")
+        if(sceneRoot.isMember(sections[i]))
         {
-            processGlobals(entity);
-            continue;
+            for(std::string& entityName : sceneRoot[sections[i]].getMemberNames())
+                std::invoke(sectionFunctions[i], this, entityName, sceneRoot[sections[i]][entityName]);
         }
 
-        const Json::Value type = entity["Type"];
-
-        if(type.asString() == "MESH")
-        {
-            addMesh(entityName, entity);
-        }
-        else if(type.asString() == "INSTANCE")
-        {
-            addMeshInstance(entityName, entity);
-        }
-        else if(type.asString() == "LIGHT")
-        {
-            addLight(entityName, entity);
-        }
-        else if(type.asString() == "MATERIAL")
-        {
-            addMaterial(entityName, entity);
-        }
-        else if(type.asString() == "SCRIPT")
-        {
-            addScript(entityName, entity);
-        }
-        else
-        {
-            BELL_TRAP; // unknown type
-        }
     }
+
+    mScene->computeBounds(AccelerationStructure::Dynamic);
+    mScene->computeBounds(AccelerationStructure::Static);
 }
 
 
@@ -73,7 +57,10 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
     for(uint32_t i = 0; i < ids.size(); ++i)
     {
         const SceneID id = ids[i];
-        mAssetIDs[name + std::to_string(i)] = id;
+        if(ids.size() > 1)
+            mAssetIDs[name + std::to_string(i)] = id;
+        else
+            mAssetIDs[name] = id;
     }
 }
 
@@ -95,8 +82,8 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         const Json::Value& positionEntry = entry["position"];
         BELL_ASSERT(positionEntry.isArray(), "Position not correct format")
         position.x = positionEntry[0].asFloat();
-        position.y = positionEntry[0].asFloat();
-        position.z = positionEntry[0].asFloat();
+        position.y = positionEntry[1].asFloat();
+        position.z = positionEntry[2].asFloat();
     }
 
     if(entry.isMember("Scale"))
@@ -104,8 +91,8 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         const Json::Value& scaleEntry = entry["Scale"];
         BELL_ASSERT(scaleEntry.isArray(), "Scale not correct format")
         scale.x = scaleEntry[0].asFloat();
-        scale.y = scaleEntry[0].asFloat();
-        scale.z = scaleEntry[0].asFloat();
+        scale.y = scaleEntry[1].asFloat();
+        scale.z = scaleEntry[2].asFloat();
     }
 
     if(entry.isMember("Rotation"))
@@ -121,7 +108,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
     BELL_ASSERT(entry.isMember("Material"), "Material is a required field")
     if(entry.isMember("Material"))
     {
-        const std::string materialName = entry["MaterialIndex"].asString();
+        const std::string materialName = entry["Material"].asString();
         BELL_ASSERT(mMaterials.find(materialName) != mMaterials.end(), "Using unspecified material")
         const MaterialEntry material = mMaterials[materialName];
         materialOffset = material.mMaterialOffset;
@@ -150,7 +137,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
         if(colliderEntry.isMember("Geometry"))
         {
-            const std::string type = entry["Geometry"].asString();
+            const std::string type = colliderEntry["Geometry"].asString();
             if(type == "MESH")
             {
                 BELL_TRAP; // TODO
@@ -159,7 +146,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
                 colliderType = BasicCollisionGeometry::Capsule;
             else if(type == "Box")
                 colliderType = BasicCollisionGeometry::Box;
-            else if(type == "Plane" )
+            else if(type == "Plane")
                 colliderType = BasicCollisionGeometry::Plane;
             else if(type == "Sphere")
                 colliderType = BasicCollisionGeometry::Sphere;
@@ -172,13 +159,13 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         PhysicsEntityType entityType = PhysicsEntityType::StaticRigid;
         if(colliderEntry.isMember("Type"))
         {
-            const std::string type = entry["Type"].asString();
+            const std::string type = colliderEntry["Type"].asString();
             if(type == "Kinematic")
                 entityType = PhysicsEntityType::Kinematic;
             else if(type == "Static")
-                entityType == PhysicsEntityType::StaticRigid;
+                entityType = PhysicsEntityType::StaticRigid;
             else if(type == "Dynamic")
-                entityType == PhysicsEntityType::DynamicRigid;
+                entityType = PhysicsEntityType::DynamicRigid;
             else
             {
                 BELL_TRAP;
@@ -195,7 +182,13 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             collisderScale.z = scaleEntry[2].asFloat();
         }
 
-        mPhysWorld->addObject(id, entityType, colliderType, position, collisderScale);
+        float mass = 0.f;
+        if(colliderEntry.isMember("Mass"))
+        {
+            mass = colliderEntry["Mass"].asFloat();
+        }
+
+        mPhysWorld->addObject(id, entityType, colliderType, position, collisderScale, mass);
     }
 
     if(entry.isMember("Scripts"))
@@ -314,9 +307,116 @@ void Level::addScript(const std::string &name, const Json::Value &entry)
     mScriptEngine->registerScript(scriptPath, name, context);
 }
 
-void Level::processGlobals(const Json::Value& entry)
-{
 
+void Level::addCamera(const std::string& name, const Json::Value& entry)
+{
+    Camera newCamera({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, 1.0f);
+    if(entry.isMember("Position"))
+    {
+        const Json::Value& positionEntry = entry["Position"];
+        float3 position;
+        position.x = positionEntry[0].asFloat();
+        position.y = positionEntry[1].asFloat();
+        position.z = positionEntry[2].asFloat();
+
+        newCamera.setPosition(position);
+    }
+
+    if(entry.isMember("Direction"))
+    {
+        const Json::Value& directionEntry = entry["Direction"];
+        float3 direction;
+        direction.x = directionEntry[0].asFloat();
+        direction.y = directionEntry[1].asFloat();
+        direction.z = directionEntry[2].asFloat();
+
+        newCamera.setDirection(direction);
+    }
+
+    if(entry.isMember("Aspect"))
+    {
+        const float aspect = entry["Aspect"].asFloat();
+        newCamera.setAspect(aspect);
+    }
+
+    if(entry.isMember("NearPlane"))
+    {
+        const float NearPlane = entry["NearPlane"].asFloat();
+        newCamera.setNearPlane(NearPlane);
+    }
+
+    if(entry.isMember("FarPlane"))
+    {
+        const float FarPlane = entry["FarPlane"].asFloat();
+        newCamera.setFarPlane(FarPlane);
+    }
+
+    if(entry.isMember("FOV"))
+    {
+        const float fov = entry["FOV"].asFloat();
+        newCamera.setFOVDegrees(fov);
+    }
+
+    if(entry.isMember("Mode"))
+    {
+        const std::string mode = entry["Mode"].asString();
+        CameraMode Cmode = CameraMode::Perspective;
+        if(mode == "Perspective")
+            Cmode = CameraMode::Perspective;
+        else if (mode == "Orthographic")
+            Cmode = CameraMode::Orthographic;
+        else if(mode == "InfinitePerspective")
+            Cmode = CameraMode::InfinitePerspective;
+
+        newCamera.setMode(Cmode);
+    }
+
+    mCamera.insert({name, newCamera});
 }
+
+
+void Level::processGlobals(const std::string&, const Json::Value& entry)
+{
+    if(entry.isMember("Skybox"))
+    {
+        BELL_ASSERT(entry["Skybox"].isArray(), "Skybox must be array")
+        const Json::Value skyboxes = entry["Skybox"];
+        std::array<std::string, 6> skyboxPaths{};
+        for(uint32_t i = 0; i < 6; ++i)
+        {
+            skyboxPaths[i] = skyboxes[i].asString();
+        }
+
+        mScene->loadSkybox(skyboxPaths, mRenderEngine);
+    }
+
+    if(entry.isMember("ShadowMapRes"))
+    {
+        const Json::Value& shadowMapRes = entry["ShadowMapRes"];
+        float2 res;
+        res.x = shadowMapRes[0].asFloat();
+        res.y = shadowMapRes[1].asFloat();
+
+        mRenderEngine->setShadowMapResolution(res);
+    }
+}
+
+void Level::setMainCameraByName(const std::string& name)
+{
+    BELL_ASSERT(mCamera.find(name) != mCamera.end(), "Camera has not been created")
+    Camera& cam = mCamera.find(name)->second;
+
+    mScene->setCamera(cam);
+}
+
+
+void Level::setShadowCameraByName(const std::string& name)
+{
+    BELL_ASSERT(mCamera.find(name) != mCamera.end(), "Camera has not been created")
+    Camera& cam = mCamera.find(name)->second;
+
+    mScene->setShadowingLight(cam);
+}
+
 
 }
