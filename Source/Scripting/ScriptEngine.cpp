@@ -18,12 +18,6 @@ ScriptEngine::ScriptEngine() :
     mState = luaL_newstate();
     luaL_openlibs(mState);
 
-    // load main game script.
-    load_script("./Scripts/main.lua");
-
-    lua_getglobal(mState, "init");
-    call_lua_func("init", 0, 0);
-
     s_scriptEngine = this;
 }
 
@@ -31,6 +25,20 @@ ScriptEngine::ScriptEngine() :
 ScriptEngine::~ScriptEngine()
 {
     lua_close(mState);
+}
+
+
+void ScriptEngine::loadScript(const std::string& s)
+{
+    load_script(s.c_str());
+}
+
+
+
+void ScriptEngine::init()
+{
+    lua_getglobal(mState, "init");
+    call_lua_func("init", 0, 0);
 }
 
 

@@ -110,6 +110,12 @@ public:
     ScriptEngine();
     ~ScriptEngine();
 
+    // Call after hook shave been inialised.
+    void init();
+
+    // load a script not associated with a context e.g utility functions / main
+    void loadScript(const std::string&);
+
     void tick(const std::chrono::microseconds);
 
     void registerScript(const std::string& path, const std::string& func, const ScriptContext);

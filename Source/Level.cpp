@@ -14,6 +14,7 @@ namespace Tempest
 
 Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEngine, const std::filesystem::path& path, const std::string& name) :
         mName(name),
+        mWorkingDir(path.parent_path().string()),
         mScene(new Scene(path)),
         mRenderEngine(eng),
         mPhysWorld{physWorld},
@@ -53,7 +54,7 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
     const std::string path = entry["Path"].asString();
     const std::string type = entry["Dynamism"].asString();
 
-    const std::vector<SceneID> ids = mScene->loadFile(path, type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine);
+    const std::vector<SceneID> ids = mScene->loadFile((mWorkingDir / path).string(), type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine);
     for(uint32_t i = 0; i < ids.size(); ++i)
     {
         const SceneID id = ids[i];
@@ -77,9 +78,9 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
     uint32_t materialOffset = 0;
     uint32_t materialFlags = 0;
 
-    if(entry.isMember("Positon"))
+    if(entry.isMember("Position"))
     {
-        const Json::Value& positionEntry = entry["position"];
+        const Json::Value& positionEntry = entry["Position"];
         BELL_ASSERT(positionEntry.isArray(), "Position not correct format")
         position.x = positionEntry[0].asFloat();
         position.y = positionEntry[1].asFloat();
@@ -232,49 +233,49 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
     if(entry.isMember("Albedo"))
     {
         const std::string path = entry["Albedo"].asString();
-        matPaths.mAlbedoorDiffusePath = path;
+        matPaths.mAlbedoorDiffusePath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Albedo);
     }
 
     if(entry.isMember("Normal"))
     {
         const std::string path = entry["Normal"].asString();
-        matPaths.mNormalsPath = path;
+        matPaths.mNormalsPath =  (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Normals);
     }
 
     if(entry.isMember("Roughness"))
     {
         const std::string path = entry["Roughness"].asString();
-        matPaths.mRoughnessOrGlossPath = path;
+        matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Roughness);
     }
 
     if(entry.isMember("Metalness"))
     {
         const std::string path = entry["Metalness"].asString();
-        matPaths.mMetalnessOrSpecularPath = path;
+        matPaths.mMetalnessOrSpecularPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Metalness);
     }
 
     if(entry.isMember("MetalnessRoughness"))
     {
         const std::string path = entry["MetalnessRoughness"].asString();
-        matPaths.mRoughnessOrGlossPath = path;
+        matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::CombinedMetalnessRoughness);
     }
 
     if(entry.isMember("Emissive"))
     {
         const std::string path = entry["Emissive"].asString();
-        matPaths.mEmissivePath = path;
+        matPaths.mEmissivePath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Emisive);
     }
 
     if(entry.isMember("Occlusion"))
     {
         const std::string path = entry["Occlusion"].asString();
-        matPaths.mAmbientOcclusionPath = path;
+        matPaths.mAmbientOcclusionPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::AmbientOcclusion);
     }
 
@@ -288,7 +289,7 @@ void Level::addScript(const std::string &name, const Json::Value &entry)
     std::string scriptPath{};
     if(entry.isMember("Path"))
     {
-        scriptPath = entry["Path"].asString();
+        scriptPath = (mWorkingDir / entry["Path"].asString()).string();
     }
 
     ScriptContext context = ScriptContext::kContext_GamePlay;
@@ -375,7 +376,7 @@ void Level::addCamera(const std::string& name, const Json::Value& entry)
 }
 
 
-void Level::processGlobals(const std::string&, const Json::Value& entry)
+void Level::processGlobals(const std::string& name, const Json::Value& entry)
 {
     if(entry.isMember("Skybox"))
     {
@@ -384,7 +385,7 @@ void Level::processGlobals(const std::string&, const Json::Value& entry)
         std::array<std::string, 6> skyboxPaths{};
         for(uint32_t i = 0; i < 6; ++i)
         {
-            skyboxPaths[i] = skyboxes[i].asString();
+            skyboxPaths[i] = (mWorkingDir / skyboxes[i].asString()).string();
         }
 
         mScene->loadSkybox(skyboxPaths, mRenderEngine);
@@ -398,6 +399,16 @@ void Level::processGlobals(const std::string&, const Json::Value& entry)
         res.y = shadowMapRes[1].asFloat();
 
         mRenderEngine->setShadowMapResolution(res);
+    }
+
+    if(entry.isMember("Scripts"))
+    {
+        const Json::Value& scripts = entry["Scripts"];
+        for(uint32_t i = 0; i < scripts.size(); ++i)
+        {
+            const std::string scriptPath = (mWorkingDir / scripts[i].asString()).string();
+            mScriptEngine->loadScript(scriptPath);
+        }
     }
 }
 

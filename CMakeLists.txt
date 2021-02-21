@@ -91,17 +91,3 @@ set(BULLET
 add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
 target_link_libraries(TEMPEST BELL jsoncpp_static ${BULLET})
 
-set(SCRIPTS
-    main.lua)
-
-foreach(script ${SCRIPTS})
-  ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}"
-    COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}"
-    DEPENDS   "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/${script}"
-    )
-list(APPEND script_dest "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Scripts/${script}")
-
-endforeach(script)
-add_custom_target(COPY_SCRIPTS DEPENDS ${script_dest})
-
-add_dependencies(TEMPEST COPY_SCRIPTS)

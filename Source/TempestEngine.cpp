@@ -19,6 +19,9 @@ namespace Tempest
         mPhysicsEngine = new PhysicsWorld();
         mScriptEngine = new ScriptEngine();
 
+        mScriptEngine->registerEngineHooks(this);
+        mScriptEngine->registerPhysicsHooks(mPhysicsEngine);
+
         mRenderEngine->startFrame(std::chrono::microseconds(0));
     }
 
@@ -35,9 +38,12 @@ namespace Tempest
     void TempestEngine::loadLevel(const std::string& path)
     {
         delete mCurrentLevel;
-        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, path, "test level");
+        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, mRootDir.string() + path, "test level");
 
         mRenderEngine->setScene(mCurrentLevel->getScene());
+        mScriptEngine->registerSceneHooks(mCurrentLevel->getScene());
+
+        mScriptEngine->init();
     }
 
 

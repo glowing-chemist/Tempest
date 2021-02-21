@@ -60,6 +60,7 @@ private:
     void processGlobals(const std::string& name, const Json::Value& entry);
 
     std::string mName;
+    std::filesystem::path mWorkingDir;
 
     struct MaterialEntry
     {
