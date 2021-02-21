@@ -50,16 +50,16 @@ namespace Tempest {
     }
 
     template<typename T>
-    inline T getTableEntry(lua_State *L, const char *key) {
+    inline T getTableEntry(lua_State *L, const char *key, const uint32_t i) {
         BELL_TRAP;
 
         return T{};
     }
 
     template<>
-    inline int getTableEntry(lua_State *L, const char *key) {
+    inline int getTableEntry(lua_State *L, const char *key, const uint32_t i) {
         lua_pushstring(L, key);
-        lua_gettable(L, -2);  // get table[key]
+        lua_gettable(L, i);  // get table[key]
 
         int result = static_cast<int>(lua_tonumber(L, -1));
         lua_pop(L, 1);  // remove number from stack
@@ -67,9 +67,9 @@ namespace Tempest {
     }
 
     template<>
-    inline float getTableEntry(lua_State *L, const char *key) {
+    inline float getTableEntry(lua_State *L, const char *key, const uint32_t i) {
         lua_pushstring(L, key);
-        lua_gettable(L, -2);  // get table[key]
+        lua_gettable(L, i);  // get table[key]
 
         float result = static_cast<float>(lua_tonumber(L, -1));
         lua_pop(L, 1);  // remove number from stack
@@ -77,9 +77,9 @@ namespace Tempest {
     }
 
     template<>
-    inline std::string getTableEntry(lua_State *L, const char *key) {
+    inline std::string getTableEntry(lua_State *L, const char *key, const uint32_t i) {
         lua_pushstring(L, key);
-        lua_gettable(L, -2);
+        lua_gettable(L, i);
 
         std::string result = lua_tostring(L, -1);
         lua_pop(L, 1);
@@ -123,6 +123,13 @@ namespace Tempest {
     }
 
     template<>
+    inline float popLuaStack(lua_State *L, uint32_t &i) {
+        float n = static_cast<float>(lua_tonumber(L, i));
+        ++i;
+        return n;
+    }
+
+    template<>
     inline std::string popLuaStack(lua_State *L, uint32_t &i) {
         std::string s = lua_tostring(L, i);
         ++i;
@@ -132,9 +139,9 @@ namespace Tempest {
     template<>
     inline float3 popLuaStack(lua_State *L, uint32_t &i) {
         float3 v;
-        v.x = getTableEntry<float>(L, "x");
-        v.y = getTableEntry<float>(L, "y");
-        v.z = getTableEntry<float>(L, "z");
+        v.x = getTableEntry<float>(L, "x", i);
+        v.y = getTableEntry<float>(L, "y", i);
+        v.z = getTableEntry<float>(L, "z", i);
 
         ++i;
         return v;

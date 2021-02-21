@@ -15,6 +15,8 @@ namespace Tempest
     class RenderThread;
     class PhysicsWorld;
     class Level;
+    class Player;
+    class Controller;
 
 class TempestEngine
 {
@@ -42,6 +44,13 @@ public:
     void setMainCameraByName(const std::string&);
     void setShadowCameraByName(const std::string&);
 
+    void createPlayerInstance(const InstanceID, const float3& pos, const float3& dir);
+    void updatePlayerInstance(const InstanceID);
+    void createControllerInstance(const InstanceID, const uint32_t);
+    void updateControllerInstance(const InstanceID);
+    void attachCameraToPlayer(const InstanceID id, const std::string&, const float armatureLenght);
+    void attachShadowCameraToPlayer(const InstanceID id, const std::string&);
+
 private:
 
     void setupGraphicsState();
@@ -52,6 +61,9 @@ private:
     bool mShouldClose = false;
 
     Level* mCurrentLevel;
+
+    std::unordered_map<InstanceID, std::unique_ptr<Player>> mPlayers;
+    std::unordered_map<InstanceID, std::unique_ptr<Controller>> mControllers;
 
     std::filesystem::path mRootDir;
     Scene* mScene;

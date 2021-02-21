@@ -27,7 +27,7 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
     sceneFile >> sceneRoot;
 
     std::array<std::string, 7> sections{"GLOBALS", "MESH", "MATERIALS", "INSTANCE", "LIGHT",
-                                        "CAMERA", "SCRIPT"};
+                                        "CAMERA", "SCRIPTS"};
     std::array<void(Level::*)(const std::string&, const Json::Value&), 7> sectionFunctions
         {
             &Level::processGlobals, &Level::addMesh, &Level::addMaterial, &Level::addMeshInstance,
@@ -51,6 +51,7 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
 
 void Level::addMesh(const std::string& name, const Json::Value& entry)
 {
+    BELL_ASSERT(entry.isMember("Path") && entry.isMember("Dynamism"), "Fields rewuired for mesh")
     const std::string path = entry["Path"].asString();
     const std::string type = entry["Dynamism"].asString();
 
@@ -206,6 +207,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         {
             const Json::Value& graphicscript = scriptEntry["Graphics"];
             const std::string func = graphicscript.asString();
+
             mScriptEngine->registerEntityWithScript(func, id, ScriptContext::kContext_Graphics);
         }
 
@@ -213,6 +215,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         {
             const Json::Value& physicsScript = scriptEntry["Physics"];
             const std::string func = physicsScript.asString();
+
             mScriptEngine->registerEntityWithScript(func, id, ScriptContext::kContext_Physics);
         }
     }
@@ -228,7 +231,7 @@ void Level::addLight(const std::string& name, const Json::Value& entry)
 void Level::addMaterial(const std::string &name, const Json::Value &entry)
 {
     Scene::MaterialPaths matPaths{};
-    matPaths.mMaterialOffset = mScene->getMaterialDescriptions().size();
+    matPaths.mMaterialOffset = mScene->getMaterials().size();
 
     if(entry.isMember("Albedo"))
     {
@@ -372,6 +375,16 @@ void Level::addCamera(const std::string& name, const Json::Value& entry)
         newCamera.setMode(Cmode);
     }
 
+    if(entry.isMember("OrthoSize"))
+    {
+        const Json::Value& size = entry["OrthoSize"];
+        float2 s;
+        s.x = size[0].asFloat();
+        s.y = size[1].asFloat();
+
+        newCamera.setOrthographicSize(s);
+    }
+
     mCamera.insert({name, newCamera});
 }
 
@@ -417,7 +430,7 @@ void Level::setMainCameraByName(const std::string& name)
     BELL_ASSERT(mCamera.find(name) != mCamera.end(), "Camera has not been created")
     Camera& cam = mCamera.find(name)->second;
 
-    mScene->setCamera(cam);
+    mScene->setCamera(&cam);
 }
 
 
@@ -426,7 +439,7 @@ void Level::setShadowCameraByName(const std::string& name)
     BELL_ASSERT(mCamera.find(name) != mCamera.end(), "Camera has not been created")
     Camera& cam = mCamera.find(name)->second;
 
-    mScene->setShadowingLight(cam);
+    mScene->setShadowingLight(&cam);
 }
 
 

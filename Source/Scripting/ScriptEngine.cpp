@@ -39,6 +39,22 @@ void ScriptEngine::init()
 {
     lua_getglobal(mState, "init");
     call_lua_func("init", 0, 0);
+
+    for(uint32_t iContext = 0; iContext < kContext_Count; ++iContext)
+    {
+        for(const auto&[name, entities] : mComponentScripts[iContext])
+        {
+            for(const auto entity : entities)
+            {
+                const std::string init_name = name + "_init";
+
+                lua_getglobal(mState, init_name.c_str());
+
+                lua_pushinteger(mState, entity);
+                call_lua_func(init_name.c_str(), 1, 0);
+            }
+        }
+    }
 }
 
 
@@ -55,6 +71,8 @@ void ScriptEngine::tick(const std::chrono::microseconds delta)
         {
             for(const auto entity : entities)
             {
+                lua_getglobal(mState, name.c_str());
+
                 lua_pushinteger(mState, entity);
                 lua_pushinteger(mState, delta.count());
                 call_lua_func(name.c_str(), 2, 0);
@@ -90,8 +108,11 @@ void ScriptEngine::call_lua_func(const char* f, const uint32_t args, const uint3
 
 void ScriptEngine::load_script(const char* f)
 {
-    const bool error = luaL_loadfile(mState, f) || lua_pcall(mState, 0, 0, 0);
+    bool error = luaL_loadfile(mState, f);
     BELL_ASSERT(!error, "Failed to load script file")
+    error = error || lua_pcall(mState, 0, 0, 0);
+
+    BELL_ASSERT(!error, "Failed to call script file")
 }
 
 void ScriptEngine::registerSceneHooks(Scene* s)

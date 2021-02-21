@@ -3,62 +3,62 @@
 
 #include <GLFW/glfw3.h>
 
-class Controller
+namespace Tempest
 {
-public:
 
-    Controller(const int joyStickID);
-    ~Controller();
+    class Controller
+            {
+    public:
+
+        Controller(const int joyStickID);
+
+        ~Controller();
 
 
-    void update(GLFWwindow *window);
+        void update(GLFWwindow *window);
 
-    float getLeftAxisX() const
-    {
-        return mAxis[0];
-    }
-    float getLeftAxisY() const
-    {
-        return mAxis[1];
-    }
+        float getLeftAxisX() const {
+            return mAxis[0];
+        }
 
-    float getRighAxisX() const
-    {
-        return mAxis[3];
-    }
-    float getRighAxisY() const
-    {
-        return mAxis[4];
-    }
+        float getLeftAxisY() const {
+            return mAxis[1];
+        }
 
-    bool pressedX() const
-    {
-        return mButtons[0] == GLFW_PRESS;
-    }
+        float getRighAxisX() const {
+            return mAxis[3];
+        }
 
-    bool releasedX() const
-    {
-        return mButtons[0] == GLFW_RELEASE;
-    }
+        float getRighAxisY() const {
+            return mAxis[4];
+        }
 
-    bool ctrlPressed() const
-    {
-        return mCtlPressed;
-    }
+        bool pressedX() const {
+            return mButtons[0] == GLFW_PRESS;
+        }
 
-private:
+        bool releasedX() const {
+            return mButtons[0] == GLFW_RELEASE;
+        }
 
-    const char* mName;
-    int mID;
+        bool ctrlPressed() const {
+            return mCtlPressed;
+        }
 
-    float mAxis[6];
+    private:
 
-    unsigned char mButtons[8];
-    bool mCtlPressed;
+        const char *mName;
+        int mID;
 
-    double mMouseX, mMouseY;
-    bool mHardwareController;
-};
+        float mAxis[6];
 
+        unsigned char mButtons[8];
+        bool mCtlPressed;
+
+        double mMouseX, mMouseY;
+        bool mHardwareController;
+    };
+
+}
 
 #endif

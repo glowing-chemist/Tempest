@@ -26,6 +26,19 @@ namespace Tempest {
 
     LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, setShadowCameraByName)
 
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, createPlayerInstance)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, updatePlayerInstance)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, attachCameraToPlayer)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, attachShadowCameraToPlayer)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, updateControllerInstance)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, attachCameraToPlayer)
+
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, attachShadowCameraToPlayer)
 
     void registerEngineLuaHooks(ScriptEngine *eng, TempestEngine *scene);
 

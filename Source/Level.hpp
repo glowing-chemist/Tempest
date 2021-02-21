@@ -49,6 +49,17 @@ public:
     void setMainCameraByName(const std::string&);
     void setShadowCameraByName(const std::string&);
 
+    Camera& getCameraByName(const std::string& n)
+    {
+        BELL_ASSERT(mCamera.find(n) != mCamera.end(), "Camera not created")
+        if(auto it = mCamera.find(n); it != mCamera.end())
+        {
+            return it->second;
+        }
+
+        BELL_TRAP;
+    }
+
 private:
 
     void addMesh(const std::string& name, const Json::Value& entry);

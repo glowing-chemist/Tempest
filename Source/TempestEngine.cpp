@@ -3,6 +3,8 @@
 #include "ScriptEngine.hpp"
 #include "PhysicsWorld.hpp"
 #include "Level.hpp"
+#include "Player.hpp"
+#include "Controller.hpp"
 
 #include "Engine/Engine.hpp"
 
@@ -134,6 +136,55 @@ namespace Tempest
     {
         BELL_ASSERT(mCurrentLevel, "No level loaded")
         mCurrentLevel->setShadowCameraByName(name);
+    }
+
+    void TempestEngine::createPlayerInstance(const InstanceID id, const float3& pos, const float3& dir)
+    {
+        auto p = std::make_unique<Player>(id, mCurrentLevel->getScene(), pos, dir);
+        mPlayers[id] = std::move(p);
+    }
+
+    void TempestEngine::updatePlayerInstance(const InstanceID id)
+    {
+        BELL_ASSERT(mPlayers.find(id) != mPlayers.end(), "No player created for this instance")
+        BELL_ASSERT(mControllers.find(id) != mControllers.end(), "No controller created for this instance")
+
+        auto& p = mPlayers[id];
+        auto& controller = mControllers[id];
+
+        p->update(controller.get(), mRenderEngine, mPhysicsEngine);
+    }
+
+    void TempestEngine::createControllerInstance(const InstanceID id, const uint32_t joyStickIndex)
+    {
+        auto c = std::make_unique<Controller>(joyStickIndex);
+        mControllers[id] = std::move(c);
+    }
+
+    void TempestEngine::updateControllerInstance(const InstanceID id)
+    {
+        BELL_ASSERT(mControllers.find(id) != mControllers.end(), "No controller created for this instance")
+        auto& controller = mControllers[id];
+
+        controller->update(mWindow);
+    }
+
+    void TempestEngine::attachCameraToPlayer(const InstanceID id, const std::string& n, const float armatureLenght)
+    {
+        BELL_ASSERT(mPlayers.find(id) != mPlayers.end(), "No player created for this instance")
+        auto& p = mPlayers[id];
+        Camera& cam = mCurrentLevel->getCameraByName(n);
+
+        p->attachCamera(cam, armatureLenght);
+    }
+
+    void TempestEngine::attachShadowCameraToPlayer(const InstanceID id, const std::string& n)
+    {
+        BELL_ASSERT(mPlayers.find(id) != mPlayers.end(), "No player created for this instance")
+        auto& p = mPlayers[id];
+        Camera& cam = mCurrentLevel->getCameraByName(n);
+
+        p->attachShadowCamera(cam);
     }
 
     void TempestEngine::setupGraphicsState()
