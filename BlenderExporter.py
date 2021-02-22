@@ -16,17 +16,20 @@ def get_base_mesh_name(name):
 
 def export_mesh_to_gltf(obj, name):
     basedir = bpy.path.abspath('//')
-    obj.select_set(True)
-    old_location = obj.location
-    obj.location = [0, 0, 0]
+    outputPath = os.path.join(basedir + 'Meshes', name)
+    if not os.path.exists(outputPath + '.glb'):
+        obj.select_set(True)
+        old_location = obj.location
+        obj.location = [0, 0, 0]
 
-    bpy.ops.export_scene.gltf(
-                filepath=os.path.join(basedir + 'Meshes', name),
-                export_materials=False,
-                export_selected=True,
-                export_yup=True)
-    obj.select_set(False)
-    obj.location = old_location
+        bpy.ops.export_scene.gltf(
+                    filepath=outputPath,
+                    export_materials=False,
+                    export_selected=True,
+                    export_yup=True)
+        obj.location = old_location
+        obj.select_set(False)
+    
 
     meshEntry = {}
     meshEntry["Path"] = 'Meshes/' + name + '.glb'
