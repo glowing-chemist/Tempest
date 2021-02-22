@@ -50,12 +50,15 @@ void PhysicsWorld::addObject(const InstanceID id,
                              const PhysicsEntityType type,
                              const BasicCollisionGeometry collisionGeometry,
                              const float3& pos,
+                             const quat& rot,
                              const float3& size,
                              const float mass)
 {
     btTransform transform;
     transform.setIdentity();
     transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+    if(collisionGeometry != BasicCollisionGeometry::Plane)
+        transform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
     btVector3 localInertia;
     btCollisionShape* shape = getCollisionShape(collisionGeometry, type, size, mass, localInertia);
@@ -92,6 +95,7 @@ void PhysicsWorld::addObject(const InstanceID id,
                              const CollisionMeshType type,
                              const StaticMesh &collisionGeometry,
                              const float3& pos,
+                             const quat& rot,
                              const float3& scale)
 {
     std::vector<float3> verticies(collisionGeometry.getVertexCount());
@@ -126,6 +130,7 @@ void PhysicsWorld::addObject(const InstanceID id,
     btTransform transform;
     transform.setIdentity();
     transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+    transform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
     btVector3 localInertia = btVector3(0.0f, 0.0f, 0.0f);
     btDefaultMotionState* myMotionState = new btDefaultMotionState(transform);
@@ -182,13 +187,13 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
 
             case BasicCollisionGeometry::Sphere:
             {
-                shape = new btSphereShape(scale.x);
+                shape = new btSphereShape(scale.x / 2.0f);
                 break;
             }
 
             case BasicCollisionGeometry::Capsule:
             {
-                shape = new btCapsuleShape(scale.x, scale.y);
+                shape = new btCapsuleShape(scale.x / 2.0f, scale.y);
                 break;
             }
 

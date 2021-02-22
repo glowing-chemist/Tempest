@@ -25,7 +25,7 @@ public:
     ~TempestEngine();
 
     // Load level
-    void loadLevel(const std::string& path);
+    void loadLevel(const std::filesystem::path& path);
 
     // main loop to be called once c++ side.
     void run();

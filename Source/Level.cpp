@@ -22,6 +22,7 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
 {
     std::ifstream sceneFile;
     sceneFile.open(path);
+    BELL_ASSERT(sceneFile.is_open(), "Failed to open scene file")
 
     Json::Value sceneRoot;
     sceneFile >> sceneRoot;
@@ -75,7 +76,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
     float3 position{0.0f, 0.0f, 0.0f};
     float3 scale{1.0f, 1.0f, 1.0f};
-    quat   rotation{0.0f, 0.0f, 0.0f, 0.f};
+    quat   rotation{1.0f, 0.0f, 0.0f, 0.f};
     uint32_t materialOffset = 0;
     uint32_t materialFlags = 0;
 
@@ -105,6 +106,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         rotation.y = rotationEntry[1].asFloat();
         rotation.z = rotationEntry[2].asFloat();
         rotation.w = rotationEntry[3].asFloat();
+        rotation = glm::normalize(rotation);
     }
 
     BELL_ASSERT(entry.isMember("Material"), "Material is a required field")
@@ -174,7 +176,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             }
         }
 
-        float3 collisderScale = {1.0f, 1.0f, 1.0f};
+        float3 collisderScale;
         if(colliderEntry.isMember("Scale"))
         {
             const Json::Value &scaleEntry = colliderEntry["Scale"];
@@ -183,6 +185,13 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             collisderScale.y = scaleEntry[1].asFloat();
             collisderScale.z = scaleEntry[2].asFloat();
         }
+        else
+        {
+            const StaticMesh* assetMesh = mScene->getMesh(assetID);
+            AABB bounds = assetMesh->getAABB();
+            float3 boundsSize = bounds.getSideLengths();
+            collisderScale = scale * boundsSize;
+        }
 
         float mass = 0.f;
         if(colliderEntry.isMember("Mass"))
@@ -190,7 +199,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             mass = colliderEntry["Mass"].asFloat();
         }
 
-        mPhysWorld->addObject(id, entityType, colliderType, position, collisderScale, mass);
+        mPhysWorld->addObject(id, entityType, colliderType, position, rotation, collisderScale, mass);
     }
 
     if(entry.isMember("Scripts"))
@@ -225,7 +234,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
 void Level::addLight(const std::string& name, const Json::Value& entry)
 {
-    BELL_TRAP;
+    //BELL_TRAP;
 }
 
 void Level::addMaterial(const std::string &name, const Json::Value &entry)
@@ -333,6 +342,7 @@ void Level::addCamera(const std::string& name, const Json::Value& entry)
         direction.x = directionEntry[0].asFloat();
         direction.y = directionEntry[1].asFloat();
         direction.z = directionEntry[2].asFloat();
+        direction = glm::normalize(direction);
 
         newCamera.setDirection(direction);
     }

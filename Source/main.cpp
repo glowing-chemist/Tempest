@@ -20,12 +20,16 @@ int main(int argc, char **argv)
     auto* window = glfwCreateWindow(1920, 1080, "Tempest", nullptr, nullptr);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Tempest::TempestEngine* engine = new Tempest::TempestEngine(window, "C:\\Users\\ollie\\source\\repos\\Tempest\\Assets\\");
+    if(argc == 2)
+    {
+        Tempest::TempestEngine *engine = new Tempest::TempestEngine(window, argv[1]);
 
-    if(argc > 1)
-        engine->loadLevel(argv[1]);
+        engine->loadLevel("scene.json");
+
+        engine->run();
+    }
     else
-        engine->loadLevel("SandBox.json");
-
-    engine->run();
+    {
+        printf("Working directory required argument");
+    }
 }

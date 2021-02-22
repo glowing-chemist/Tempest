@@ -37,10 +37,10 @@ namespace Tempest
     }
 
 
-    void TempestEngine::loadLevel(const std::string& path)
+    void TempestEngine::loadLevel(const std::filesystem::path& path)
     {
         delete mCurrentLevel;
-        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, mRootDir.string() + path, "test level");
+        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, mRootDir / path, "test level");
 
         mRenderEngine->setScene(mCurrentLevel->getScene());
         mScriptEngine->registerSceneHooks(mCurrentLevel->getScene());

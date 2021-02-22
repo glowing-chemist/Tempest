@@ -44,12 +44,14 @@ public:
                    const CollisionMeshType,
                    const StaticMesh& collisionGeometry,
                    const float3& pos,
+                   const quat& rot,
                    const float3& scale);
 
     void addObject(const InstanceID id,
                    const PhysicsEntityType type,
                    const BasicCollisionGeometry collisionGeometry,
                    const float3& pos,
+                   const quat& rot,
                    const float3& size, const float mass = 0.0f);
 
     void removeObject(const InstanceID id);
