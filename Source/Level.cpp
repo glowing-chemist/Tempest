@@ -218,7 +218,68 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
 void Level::addLight(const std::string& name, const Json::Value& entry)
 {
-    //BELL_TRAP;
+    float4 position = {0, 0, 0., 1.0f};
+    float4 direction{1.0f, 0.0f, 0.0f, 1.0f};
+    float4 up{0.f, 1.0f, 0.0f, 1.0f};
+    float4 colour{1.0f, 1.0f, 1.0f, 1.0f};
+    float2 size{1.0f, 1.0f};
+    float intensity = 1.0f;
+    float radius = 1.0f;
+    if(entry.isMember("Position"))
+    {
+        const Json::Value& positionEntry = entry["Position"];
+        BELL_ASSERT(positionEntry.isArray(), "Position not correct format")
+        position.x = positionEntry[0].asFloat();
+        position.y = positionEntry[1].asFloat();
+        position.z = positionEntry[2].asFloat();
+    }
+
+    if(entry.isMember("Direction"))
+    {
+        const Json::Value& directionEntry = entry["Direction"];
+        BELL_ASSERT(directionEntry.isArray(), "Direction not correct format")
+        direction.x = directionEntry[0].asFloat();
+        direction.y = directionEntry[1].asFloat();
+        direction.z = directionEntry[2].asFloat();
+    }
+
+    if(entry.isMember("FallOff"))
+        radius = entry["FallOff"].asFloat();
+
+    if(entry.isMember("Intensity"))
+        intensity = entry["Intensity"].asFloat();
+
+    if(entry.isMember("Colour"))
+    {
+        const Json::Value& colourEntry = entry["Colour"];
+        BELL_ASSERT(colourEntry.isArray(), "Colour not correct format")
+        colour.x = colourEntry[0].asFloat();
+        colour.y = colourEntry[1].asFloat();
+        colour.z = colourEntry[2].asFloat();
+    }
+
+    if(entry.isMember("Size"))
+    {
+        const Json::Value& sizeEntry = entry["Size"];
+        BELL_ASSERT(sizeEntry.isArray(), "Size not correct format")
+        size.x = sizeEntry[0].asFloat();
+        size.y = sizeEntry[1].asFloat();
+    }
+
+    BELL_ASSERT(entry.isMember("Type"), "Light must specify type")
+    const std::string lightType = entry["Type"].asString();
+    if(lightType == "Point")
+    {
+        mScene->addLight(Scene::Light::pointLight(position, colour, intensity, radius));
+    }
+    else if(lightType == "Spot")
+    {
+        mScene->addLight(Scene::Light::spotLight(position, direction, colour, intensity, radius, 45.0f));
+    }
+    else if(lightType == "Area")
+    {
+        mScene->addLight(Scene::Light::areaLight(position, direction, up, colour, intensity, radius, size));
+    }
 }
 
 void Level::addMaterial(const std::string &name, const Json::Value &entry)

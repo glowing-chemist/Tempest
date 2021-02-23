@@ -199,6 +199,8 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::Composite);
         mRenderEngine->registerPass(PassType::Animation);
         mRenderEngine->registerPass(PassType::LineariseDepth);
+        mRenderEngine->registerPass(PassType::LightFroxelation);
+        mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         //eng->registerPass(PassType::TAA);
         //eng->registerPass(PassType::SSAO);
 #ifndef NDEBUG
