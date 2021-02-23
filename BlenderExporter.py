@@ -73,6 +73,11 @@ def create_mesh_instance(obj, assetName):
     
     instanceEntry["Collider"] = create_mesh_collider(obj)
     
+    scriptsEntry = {}
+    if "GamePlay" in bpy.data.objects[obj.name]:
+        scriptsEntry["GamePlay"] = bpy.data.objects[obj.name]["GamePlay"]
+        instanceEntry["Scripts"] = scriptsEntry       
+    
     return instanceEntry
     
 def create_camera_entry(obj):
@@ -185,10 +190,12 @@ class ExportTemptestScene(bpy.types.Operator):
                 if not(baseName in meshes):
                     meshes[baseName] = export_mesh_to_gltf(obj, baseName)
                 instances[obj.name] = create_mesh_instance(obj, baseName)
-
                 
                 materialName, material = create_material_entry(obj)
                 materials[materialName] = material
+                
+                if "GamePlay" in bpy.data.objects[obj.name]:
+                    scripts[bpy.data.objects[obj.name]["GamePlay"]] = 'Scripts/' + bpy.data.objects[obj.name]["GamePlay"] + '.lua'  
                 
             if obj.type == 'CAMERA':
                 cameras[obj.name] = create_camera_entry(obj)
