@@ -29,11 +29,6 @@ void run(Tempest::RenderThread* thread)
         thread->mEngine->render();
         thread->mEngine->swap();
         thread->mEngine->endFrame();
-
-        thread->mProcessed = true;
-
-        lock.unlock();
-        thread->mGraphics_cv.notify_one();
     }
 
     /*std::unique_lock lock(thread->mGraphics_context_mutex);
@@ -69,8 +64,6 @@ void RenderThread::update(const bool shouldClose, const bool firstFrame)
 std::unique_lock<std::mutex> RenderThread::lock()
 {
     std::unique_lock lock(mGraphics_context_mutex);
-    mGraphics_cv.wait(lock, [this]{return mProcessed;});
-    mProcessed = false;
 
     return lock;
 }

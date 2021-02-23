@@ -32,7 +32,6 @@ public:
     RenderEngine* mEngine;
 
     std::thread mThread;
-    bool mProcessed = true;
     bool mReady = false;
     bool mShouldClose = false;
     bool mFirstFrame = true;
