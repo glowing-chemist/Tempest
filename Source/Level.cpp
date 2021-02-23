@@ -209,23 +209,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         {
             const Json::Value& gamePlayScript = scriptEntry["GamePlay"];
             const std::string func = gamePlayScript.asString();
-            mScriptEngine->registerEntityWithScript(func, id, ScriptContext::kContext_GamePlay);
-        }
-
-        if(scriptEntry.isMember("Graphics"))
-        {
-            const Json::Value& graphicscript = scriptEntry["Graphics"];
-            const std::string func = graphicscript.asString();
-
-            mScriptEngine->registerEntityWithScript(func, id, ScriptContext::kContext_Graphics);
-        }
-
-        if(scriptEntry.isMember("Physics"))
-        {
-            const Json::Value& physicsScript = scriptEntry["Physics"];
-            const std::string func = physicsScript.asString();
-
-            mScriptEngine->registerEntityWithScript(func, id, ScriptContext::kContext_Physics);
+            mScriptEngine->registerEntityWithScript(func, id);
         }
     }
 
@@ -304,20 +288,8 @@ void Level::addScript(const std::string &name, const Json::Value &entry)
         scriptPath = (mWorkingDir / entry["Path"].asString()).string();
     }
 
-    ScriptContext context = ScriptContext::kContext_GamePlay;
-    if(entry.isMember("Context"))
-    {
-        const std::string contextString = entry["Context"].asString();
-        if(contextString == "GamePlay")
-            context = ScriptContext::kContext_GamePlay;
-        else if(contextString == "Graphics")
-            context = ScriptContext::kContext_Graphics;
-        else if(contextString == "Physics")
-            context = ScriptContext::kContext_Physics;
-    }
-
     BELL_ASSERT(!scriptPath.empty(), "No path given for script")
-    mScriptEngine->registerScript(scriptPath, name, context);
+    mScriptEngine->registerScript(scriptPath, name);
 }
 
 

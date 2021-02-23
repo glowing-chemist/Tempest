@@ -40,19 +40,16 @@ void ScriptEngine::init()
     lua_getglobal(mState, "init");
     call_lua_func("init", 0, 0);
 
-    for(uint32_t iContext = 0; iContext < kContext_Count; ++iContext)
+    for(const auto&[name, entities] : mComponentScripts)
     {
-        for(const auto&[name, entities] : mComponentScripts[iContext])
+        for(const auto entity : entities)
         {
-            for(const auto entity : entities)
-            {
-                const std::string init_name = name + "_init";
+            const std::string init_name = name + "_init";
 
-                lua_getglobal(mState, init_name.c_str());
+            lua_getglobal(mState, init_name.c_str());
 
-                lua_pushinteger(mState, entity);
-                call_lua_func(init_name.c_str(), 1, 0);
-            }
+            lua_pushinteger(mState, entity);
+            call_lua_func(init_name.c_str(), 1, 0);
         }
     }
 }
@@ -65,33 +62,30 @@ void ScriptEngine::tick(const std::chrono::microseconds delta)
     lua_pushinteger(mState, delta.count());
     call_lua_func("main", 1, 0);
 
-    for(uint32_t iContext = 0; iContext < kContext_Count; ++iContext)
+    for(const auto&[name, entities] : mComponentScripts)
     {
-        for(const auto&[name, entities] : mComponentScripts[iContext])
+        for(const auto entity : entities)
         {
-            for(const auto entity : entities)
-            {
-                lua_getglobal(mState, name.c_str());
+            lua_getglobal(mState, name.c_str());
 
-                lua_pushinteger(mState, entity);
-                lua_pushinteger(mState, delta.count());
-                call_lua_func(name.c_str(), 2, 0);
-            }
+            lua_pushinteger(mState, entity);
+            lua_pushinteger(mState, delta.count());
+            call_lua_func(name.c_str(), 2, 0);
         }
     }
 }
 
 
-void ScriptEngine::registerScript(const std::string& path, const std::string& func, const ScriptContext context)
+void ScriptEngine::registerScript(const std::string& path, const std::string& func)
 {
     load_script(path.c_str());
-    mComponentScripts[context].insert({func, {}});
+    mComponentScripts.insert({func, {}});
 }
 
 
-void ScriptEngine::registerEntityWithScript(const std::string& func, const int64_t entity, const ScriptContext context)
+void ScriptEngine::registerEntityWithScript(const std::string& func, const int64_t entity)
 {
-    mComponentScripts[context][func].push_back(entity);
+    mComponentScripts[func].push_back(entity);
 }
 
 

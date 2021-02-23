@@ -18,16 +18,6 @@ namespace Tempest
     class PhysicsWorld;
     class TempestEngine;
 
-enum ScriptContext : uint32_t
-{
-    kContext_GamePlay = 0,
-    kContext_Physics,
-    kContext_Graphics,
-
-    kContext_Count
-
-};
-
 template<typename T>
 struct ExtractClassType
 {
@@ -118,9 +108,9 @@ public:
 
     void tick(const std::chrono::microseconds);
 
-    void registerScript(const std::string& path, const std::string& func, const ScriptContext);
+    void registerScript(const std::string& path, const std::string& func);
 
-    void registerEntityWithScript(const std::string& func, const int64_t entity, const ScriptContext);
+    void registerEntityWithScript(const std::string& func, const int64_t entity);
 
     CallablesRegistrar* createCallablesRegistrar()
     {
@@ -153,13 +143,11 @@ public:
 
 private:
 
-    void pushArgsOnStack(const int64_t entity, const ScriptContext);
-
     void call_lua_func(const char *f, const uint32_t args, const uint32_t returns);
 
     void load_script(const char* f);
 
-    std::unordered_map<std::string, std::vector<int64_t>> mComponentScripts[kContext_Count];
+    std::unordered_map<std::string, std::vector<int64_t>> mComponentScripts;
 
     std::unordered_map<std::string, ScriptableCallableBase*> mCallables;
 
