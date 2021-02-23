@@ -343,11 +343,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
 
 void Level::addScript(const std::string &name, const Json::Value &entry)
 {
-    std::string scriptPath{};
-    if(entry.isMember("Path"))
-    {
-        scriptPath = (mWorkingDir / entry["Path"].asString()).string();
-    }
+    std::string scriptPath = (mWorkingDir / entry.asString()).string();
 
     BELL_ASSERT(!scriptPath.empty(), "No path given for script")
     mScriptEngine->registerScript(scriptPath, name);
