@@ -16,7 +16,6 @@ namespace Tempest {
             mScene(scene),
             mCamera(nullptr),
             mShadowCamera(nullptr),
-            mPosition(pos),
             mDirection(dir),
             mCurrentState(Resting),
             mHitBoxes{},
@@ -43,62 +42,7 @@ namespace Tempest {
 
     void Player::update(const Controller *controller, RenderEngine *eng, Tempest::PhysicsWorld *world) {
         PROFILER_EVENT();
-
-        const bool sprinting = controller->ctrlPressed();
-        const float x = controller->getLeftAxisX() * (sprinting ? 0.05f : 0.01f);
-        const float z = controller->getLeftAxisY() * (sprinting ? 0.05f : 0.01f);
-        const bool moving = (x != 0.0f || z != 0.0f);
-
-        // update attached camera
-        if (mCamera) {
-            const float cx = controller->getRighAxisX();
-            const float cz = controller->getRighAxisY();
-
-            float3 position = mCamera->getPosition();
-            float3 direction = mCamera->getDirection();
-            const float3 right = mCamera->getRight();
-
-            glm::float4x4 rotation = glm::rotate(-0.1f * cx, float3(0.0f, 1.0f, 0.0f)) * glm::rotate(-0.1f * cz, right);
-            const float4 positionOffset = float4(
-                    float3((mArmatureLength * direction) + float3(0.0f, mCentralHeight, 0.0f)), 0.0f);
-            position = mPosition - float3(positionOffset * rotation);
-            direction = glm::normalize(float4(direction, 0.0f) * rotation);
-
-            mCamera->setPosition(position);
-            mCamera->setDirection(direction);
-        }
-
-        if (mShadowCamera && moving) {
-            mShadowCamera->setPosition({mPosition.x, 10.0f, mPosition.z});
-        }
-
-        if (mCoolDownCounter > 0)
-            --mCoolDownCounter;
-
-        if (mCoolDownCounter == 0 && mCurrentState == Jumping)
-            mCurrentState = Resting;
-
-        btRigidBody *body = world->getRigidBody(mID);
-
-        if (moving) {
-            if (mCamera) {
-                float3 direction = mCamera->getDirection();
-                direction.y = 0.0f;
-                direction = glm::normalize(direction);
-                const float3 right = mCamera->getRight();
-                mDirection = (-z * direction) + (x * right);
-            } else
-                mDirection = float3{z, 0.0f, x};
-            mPosition += mDirection;
-
-            body->translate({mDirection.x, mDirection.y, mDirection.z});
-        }
-
-        const btVector3 &origin = body->getCenterOfMassPosition();
-        mPosition = {origin.x(), origin.y() - mCentralHeight, origin.z()};
-
-        updateRenderinstance();
-
+        /*
         if (moving && sprinting && mCurrentState == Resting) {
             eng->startAnimation(mID, kSprintAnimation, true, 2.0f);
             mCurrentState = Sprinting;
@@ -139,25 +83,37 @@ namespace Tempest {
 
         if (!body->isActive())
             body->activate(true);
+            */
     }
 
+    void Player::updateCameras(Controller* controller)
+    {
+        float3 instancePosition = mScene->getInstancePosition(mID);
 
-    void Player::undoMove() {
-        if (mCamera) {
+        // update attached camera
+        if (mCamera)
+        {
+            const float cx = controller->getRightAxisX();
+            const float cz = controller->getRightAxisY();
+
             float3 position = mCamera->getPosition();
-            position = position - mDirection * 2.0f;
+            float3 direction = mCamera->getDirection();
+            const float3 right = mCamera->getRight();
+
+            glm::float4x4 rotation = glm::rotate(-0.1f * cx, float3(0.0f, 1.0f, 0.0f)) * glm::rotate(-0.1f * cz, right);
+            const float4 positionOffset = float4(
+                    float3((mArmatureLength * direction) + float3(0.0f, mCentralHeight, 0.0f)), 0.0f);
+            position = instancePosition - float3(positionOffset * rotation);
+            direction = glm::normalize(float4(direction, 0.0f) * rotation);
 
             mCamera->setPosition(position);
+            mCamera->setDirection(direction);
         }
 
-        if (mShadowCamera) {
-            float3 position = mShadowCamera->getPosition();
-            position = position - mDirection * 2.0f;
-
-            mShadowCamera->setPosition(position);
+        if (mShadowCamera)
+        {
+            mShadowCamera->setPosition({instancePosition.x, 10.0f, instancePosition.z});
         }
-
-        mPosition -= mDirection * 4.0f;
     }
 
 
@@ -204,18 +160,6 @@ namespace Tempest {
                 previousHitBox.mOrientatedBoundingBox = transformedOBB;
             }
         }
-    }
-
-
-    void Player::updateRenderinstance() {
-        float angle = glm::orientedAngle(float2(1.0f, 0.0f), glm::normalize(float2(mDirection.z, mDirection.x)));
-
-        const float4x4 rotation = glm::rotate(angle, float3{0.0f, 1.0f, 0.0f});
-        const float4x4 translation = glm::translate(float4x4(1.0f), mPosition);
-
-        MeshInstance *instance = mScene->getMeshInstance(mID);
-        BELL_ASSERT(instance, "invalid mesh ID")
-        instance->setTransMatrix(translation * rotation);
     }
 
 }

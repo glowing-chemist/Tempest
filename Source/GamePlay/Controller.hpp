@@ -25,11 +25,11 @@ namespace Tempest
             return mAxis[1];
         }
 
-        float getRighAxisX() const {
+        float getRightAxisX() const {
             return mAxis[3];
         }
 
-        float getRighAxisY() const {
+        float getRightAxisY() const {
             return mAxis[4];
         }
 
@@ -45,6 +45,10 @@ namespace Tempest
             return mCtlPressed;
         }
 
+        bool shftPressed() const {
+            return mShftPressed;
+        }
+
     private:
 
         const char *mName;
@@ -54,6 +58,7 @@ namespace Tempest
 
         unsigned char mButtons[8];
         bool mCtlPressed;
+        bool mShftPressed;
 
         double mMouseX, mMouseY;
         bool mHardwareController;

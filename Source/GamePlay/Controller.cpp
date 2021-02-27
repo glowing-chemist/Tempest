@@ -67,6 +67,7 @@ namespace  Tempest {
                 mButtons[0] = GLFW_PRESS;
 
             mCtlPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+            mShftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
         }
     }
 

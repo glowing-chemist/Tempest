@@ -19,8 +19,9 @@ include_directories(	"${BELL_PATH}"
                         "${BELL_PATH}/ThirdParty/imgui-master"    
                         "${BELL_PATH}/ThirdParty/glslang"    
                         "${BELL_PATH}/ThirdParty/imgui-node-editor/NodeEditor/Include"    
-                    	"${BELL_PATH}/ThirdParty/glm"           
-			"${BELL_PATH}/ThirdParty/stb_image"
+                    	"${BELL_PATH}/ThirdParty/glm"
+		"${BELL_PATH}/ThirdParty/imgui-guizmo"
+		"${BELL_PATH}/ThirdParty/stb_image"
 			"Source/lua/src"
 			"Source/bullet3/src/"
 			"Source/jsoncpp/include"
@@ -66,7 +67,6 @@ set(LUA_SOURCE
     Source/lua/src/linit.c)
 
 set(ENGINE_SOURCE
-    Source/main.cpp
     Source/GamePlay/Player.cpp
     Source/GamePlay/Controller.cpp
     Source/Graphics/RenderThread.cpp
@@ -76,8 +76,8 @@ set(ENGINE_SOURCE
     Source/Physics/PhysicsWorld.cpp
     Source/GamePlay/NavMesh.cpp
     Source/Scripting/ScriptableScene.cpp
-		Source/Scripting/ScriptableEngine.cpp
-		Source/Scripting/ScriptableRenderer.cpp)
+	Source/Scripting/ScriptableEngine.cpp
+	Source/Scripting/ScriptableRenderer.cpp)
 
 set(BULLET
     BulletInverseDynamics
@@ -88,6 +88,14 @@ set(BULLET
     LinearMath
     )
 
-add_executable(TEMPEST ${ENGINE_SOURCE} ${LUA_SOURCE})
+add_executable(TEMPEST ${ENGINE_SOURCE} Source/main.cpp  ${LUA_SOURCE})
 target_link_libraries(TEMPEST BELL jsoncpp_static ${BULLET})
 
+set(TEMPEST_EDITOR_SOURCE
+		Source/Editor/main.cpp
+		Source/Editor/TempestEditor.cpp
+		Source/Editor/SceneWindow.cpp
+		Source/Editor/InstanceWindow.cpp)
+
+add_executable(TEMPEST_EDITOR ${ENGINE_SOURCE}  ${TEMPEST_EDITOR_SOURCE} ${LUA_SOURCE})
+target_link_libraries(TEMPEST_EDITOR BELL jsoncpp_static ${BULLET})

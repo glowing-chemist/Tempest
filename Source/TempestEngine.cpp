@@ -13,8 +13,7 @@ namespace Tempest
     TempestEngine::TempestEngine(GLFWwindow *window, const std::filesystem::path& path) :
         mWindow(window),
         mCurrentLevel{nullptr},
-        mRootDir(path),
-        mScene(nullptr)
+        mRootDir(path)
     {
         mRenderEngine = new RenderEngine(mWindow);
         mRenderThread = nullptr;
@@ -85,22 +84,69 @@ namespace Tempest
         }
     }
 
+    void TempestEngine::startInstanceFrame(const InstanceID id)
+    {
+        Instance* inst = mCurrentLevel->getScene()->getMeshInstance(id);
+        inst->newFrame();
+    }
+
     void TempestEngine::translateInstance(const InstanceID id, const float3& v)
     {
-        mScene->translateInstance(id, v);
+        mCurrentLevel->getScene()->translateInstance(id, v);
         mPhysicsEngine->translateInstance(id, v);
     }
 
     float3 TempestEngine::getInstancePosition(const InstanceID id) const
     {
-        return mScene->getInstancePosition(id);
+        return mCurrentLevel->getScene()->getInstancePosition(id);
     }
 
 
     void   TempestEngine::setInstancePosition(const InstanceID id, const float3& v)
     {
-        mScene->setInstancePosition(id, v);
+        mCurrentLevel->getScene()->setInstancePosition(id, v);
         mPhysicsEngine->setInstancePosition(id, v);
+    }
+
+    void   TempestEngine::setInstanceRotation(const InstanceID id, const quat& rot)
+    {
+        mCurrentLevel->getScene()->getMeshInstance(id)->setRotation(rot);
+    }
+
+    void   TempestEngine::setGraphicsInstancePosition(const InstanceID id, const float3& v)
+    {
+        mCurrentLevel->getScene()->setInstancePosition(id, v);
+    }
+
+    float3 TempestEngine::getInstanceSize(const InstanceID id) const
+    {
+        const MeshInstance* meshInstance = mCurrentLevel->getScene()->getMeshInstance(id);
+
+        AABB transformedAABB = meshInstance->getMesh()->getAABB() * meshInstance->getTransMatrix();
+        return transformedAABB.getSideLengths();
+    }
+
+    float3 TempestEngine::getInstanceCenter(const InstanceID id) const
+    {
+        const MeshInstance* meshInstance = mCurrentLevel->getScene()->getMeshInstance(id);
+
+        AABB transformedAABB = meshInstance->getMesh()->getAABB() * meshInstance->getTransMatrix();
+        return transformedAABB.getCentralPoint();
+    }
+
+    float3 TempestEngine::getPhysicsBodyPosition(const InstanceID id)
+    {
+        btRigidBody* body = mPhysicsEngine->getRigidBody(id);
+        const btVector3& center = body->getCenterOfMassPosition();
+
+        return {center.x(), center.y(), center.z()};
+    }
+
+    void TempestEngine::updatePlayersAttachedCameras(const InstanceID id)
+    {
+        auto& p = mPlayers[id];
+        auto& camera = mControllers[id];
+        p->updateCameras(camera.get());
     }
 
     void TempestEngine::startAnimation(const InstanceID id, const std::string& name, const bool loop, const float speedModifer)
@@ -109,7 +155,7 @@ namespace Tempest
     }
 
 
-    void TempestEngine::terimateAnimation(const InstanceID id, const std::string& name)
+    void TempestEngine::terminateAnimation(const InstanceID id, const std::string& name)
     {
         mRenderEngine->terimateAnimation(id, name);
     }
@@ -144,15 +190,12 @@ namespace Tempest
         mPlayers[id] = std::move(p);
     }
 
-    void TempestEngine::updatePlayerInstance(const InstanceID id)
+    const Controller& TempestEngine::getControllerForInstance(const InstanceID id)
     {
-        BELL_ASSERT(mPlayers.find(id) != mPlayers.end(), "No player created for this instance")
         BELL_ASSERT(mControllers.find(id) != mControllers.end(), "No controller created for this instance")
-
-        auto& p = mPlayers[id];
         auto& controller = mControllers[id];
 
-        p->update(controller.get(), mRenderEngine, mPhysicsEngine);
+        return *controller.get();
     }
 
     void TempestEngine::createControllerInstance(const InstanceID id, const uint32_t joyStickIndex)
@@ -161,12 +204,14 @@ namespace Tempest
         mControllers[id] = std::move(c);
     }
 
-    void TempestEngine::updateControllerInstance(const InstanceID id)
+    const Controller& TempestEngine::updateControllerInstance(const InstanceID id)
     {
         BELL_ASSERT(mControllers.find(id) != mControllers.end(), "No controller created for this instance")
         auto& controller = mControllers[id];
 
         controller->update(mWindow);
+
+        return *controller.get();
     }
 
     void TempestEngine::attachCameraToPlayer(const InstanceID id, const std::string& n, const float armatureLenght)
@@ -185,6 +230,32 @@ namespace Tempest
         Camera& cam = mCurrentLevel->getCameraByName(n);
 
         p->attachShadowCamera(cam);
+    }
+
+    void TempestEngine::applyImpulseToInstance(const InstanceID id, const float3& impulse)
+    {
+        btRigidBody* body = mPhysicsEngine->getRigidBody(id);
+        if (!body->isActive())
+            body->activate(true);
+        body->applyCentralImpulse({impulse.x, impulse.y, impulse.z});
+    }
+
+    float3 TempestEngine::getCameraDirectionByName(const std::string& n) const
+    {
+        const Camera& cam = mCurrentLevel->getCameraByName(n);
+        return cam.getDirection();
+    }
+
+    float3 TempestEngine::getCameraRightByName(const std::string& n) const
+    {
+        const Camera& cam = mCurrentLevel->getCameraByName(n);
+        return cam.getRight();
+    }
+
+    float3 TempestEngine::getCameraPositionByName(const std::string& n) const
+    {
+        const Camera& cam = mCurrentLevel->getCameraByName(n);
+        return cam.getPosition();
     }
 
     void TempestEngine::setupGraphicsState()

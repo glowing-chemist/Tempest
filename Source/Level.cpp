@@ -50,9 +50,21 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
 }
 
 
+Level::Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine* scriptEngine, const std::string& name) :
+        mName(name),
+        mWorkingDir("."),
+        mScene(new Scene(name)),
+        mRenderEngine(eng),
+        mPhysWorld{physWorld},
+        mScriptEngine{scriptEngine}
+{
+
+}
+
+
 void Level::addMesh(const std::string& name, const Json::Value& entry)
 {
-    BELL_ASSERT(entry.isMember("Path") && entry.isMember("Dynamism"), "Fields rewuired for mesh")
+    BELL_ASSERT(entry.isMember("Path") && entry.isMember("Dynamism"), "Fields required for mesh")
     const std::string path = entry["Path"].asString();
     const std::string type = entry["Dynamism"].asString();
 
@@ -64,6 +76,8 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
             mAssetIDs[name + std::to_string(i)] = id;
         else
             mAssetIDs[name] = id;
+
+        mIDToPath[id] = path;
     }
 }
 
@@ -481,5 +495,28 @@ void Level::setShadowCameraByName(const std::string& name)
     mScene->setShadowingLight(&cam);
 }
 
+
+void Level::dumpToSceneFile() const
+{
+
+}
+
+
+void Level::addMaterialFromFile(std::filesystem::path& materialFile)
+{
+
+}
+
+
+void Level::addMeshFromFile(std::filesystem::path& path, const MeshType)
+{
+
+}
+
+
+void Level::addScriptFromFile(std::filesystem::path& path)
+{
+
+}
 
 }

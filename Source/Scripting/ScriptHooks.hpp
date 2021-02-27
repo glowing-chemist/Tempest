@@ -49,6 +49,12 @@ namespace Tempest {
         lua_settable(L, -3);
     }
 
+    inline void setLuaTableEntry(lua_State *L, const std::string &key, const bool val) {
+        lua_pushstring(L, key.c_str());
+        lua_pushboolean(L, val);
+        lua_settable(L, -3);
+    }
+
     template<typename T>
     inline T getTableEntry(lua_State *L, const char *key, const uint32_t i) {
         BELL_TRAP;
@@ -137,6 +143,13 @@ namespace Tempest {
     }
 
     template<>
+    inline bool popLuaStack(lua_State *L, uint32_t &i) {
+        bool b = lua_toboolean(L, i);
+        ++i;
+        return b;
+    }
+
+    template<>
     inline float3 popLuaStack(lua_State *L, uint32_t &i) {
         float3 v;
         v.x = getTableEntry<float>(L, "x", i);
@@ -145,6 +158,18 @@ namespace Tempest {
 
         ++i;
         return v;
+    }
+
+    template<>
+    inline quat popLuaStack(lua_State *L, uint32_t &i) {
+        quat q;
+        q.x = getTableEntry<float>(L, "x", i);
+        q.y = getTableEntry<float>(L, "y", i);
+        q.z = getTableEntry<float>(L, "z", i);
+        q.w = getTableEntry<float>(L, "w", i);
+
+        ++i;
+        return q;
     }
 
 
@@ -169,10 +194,16 @@ namespace Tempest {
     }
 
     inline void pushLuaStack(lua_State *L, const float3 &f) {
-        lua_newtable(L);
+        lua_createtable(L, 0, 3);
         setLuaTableEntry(L, "x", f.x);
         setLuaTableEntry(L, "y", f.y);
         setLuaTableEntry(L, "z", f.z);
+    }
+
+    inline void pushLuaStack(lua_State *L, const float2 &f) {
+        lua_createtable(L, 0, 2);
+        setLuaTableEntry(L, "x", f.x);
+        setLuaTableEntry(L, "y", f.y);
     }
 
     template<typename F, typename I, typename H, typename ...Stack, template<typename...> class S, typename...Args>

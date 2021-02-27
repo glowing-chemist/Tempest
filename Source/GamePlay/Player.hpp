@@ -24,10 +24,7 @@ namespace Tempest {
         ~Player() = default;
 
         void update(const Controller *, RenderEngine *, Tempest::PhysicsWorld *world);
-
-        void applyForce(const float3 &dir) {
-            mPosition += dir;
-        }
+        void updateCameras(Controller*);
 
         struct HitBox {
             HitBox() :
@@ -44,10 +41,6 @@ namespace Tempest {
 
         const float3 &getDirection() const {
             return mDirection;
-        }
-
-        const float3 &getPosition() const {
-            return mPosition;
         }
 
         void attachCamera(Camera &cam, const float armatureLength) {
@@ -67,13 +60,9 @@ namespace Tempest {
             mShadowCamera = nullptr;
         }
 
-        void undoMove();
-
     private:
 
         void updateHitBoxes(RenderEngine *eng);
-
-        void updateRenderinstance();
 
         InstanceID mID;
         Scene *mScene;
@@ -83,7 +72,6 @@ namespace Tempest {
         Camera *mCamera;
         Camera *mShadowCamera;
 
-        float3 mPosition;
         float3 mDirection;
 
         enum State {

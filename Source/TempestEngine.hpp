@@ -31,12 +31,23 @@ public:
     void run();
 
     // lua scripting hooks.
+    // must be called before updating transformation!!
+    void startInstanceFrame(const InstanceID);
+
     void translateInstance(const InstanceID, const float3&);
     float3 getInstancePosition(const InstanceID) const;
     void   setInstancePosition(const InstanceID, const float3&);
+    void   setInstanceRotation(const InstanceID, const quat&);
+    void   setGraphicsInstancePosition(const InstanceID, const float3&);
+    float3 getInstanceSize(const InstanceID) const;
+    float3 getInstanceCenter(const InstanceID) const;
+
+    float3 getPhysicsBodyPosition(const InstanceID);
+
+    void updatePlayersAttachedCameras(const InstanceID);
 
     void startAnimation(const InstanceID id, const std::string& name, const bool loop, const float speedModifer);
-    void terimateAnimation(const InstanceID id, const std::string& name);
+    void terminateAnimation(const InstanceID id, const std::string& name);
 
     InstanceID getInstanceIDByName(const std::string&) const;
     SceneID getSceneIDByName(const std::string&) const;
@@ -45,11 +56,17 @@ public:
     void setShadowCameraByName(const std::string&);
 
     void createPlayerInstance(const InstanceID, const float3& pos, const float3& dir);
-    void updatePlayerInstance(const InstanceID);
+    const Controller& getControllerForInstance(const InstanceID);
     void createControllerInstance(const InstanceID, const uint32_t);
-    void updateControllerInstance(const InstanceID);
+    const Controller& updateControllerInstance(const InstanceID);
     void attachCameraToPlayer(const InstanceID id, const std::string&, const float armatureLenght);
     void attachShadowCameraToPlayer(const InstanceID id, const std::string&);
+
+    void applyImpulseToInstance(const InstanceID, const float3&);
+
+    float3 getCameraDirectionByName(const std::string&) const;
+    float3 getCameraRightByName(const std::string&) const;
+    float3 getCameraPositionByName(const std::string&) const;
 
 private:
 
@@ -66,7 +83,6 @@ private:
     std::unordered_map<InstanceID, std::unique_ptr<Controller>> mControllers;
 
     std::filesystem::path mRootDir;
-    Scene* mScene;
     RenderEngine* mRenderEngine;
     RenderThread* mRenderThread;
     PhysicsWorld* mPhysicsEngine;

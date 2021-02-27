@@ -5,7 +5,7 @@ from mathutils import Vector
 
 bl_info = {
     "name": "Tempest Exporter",
-    "blender": (2, 80, 0),
+    "blender": (2, 92, 0),
     "category": "Object",
 }   
     
@@ -33,6 +33,7 @@ def export_mesh_to_gltf(obj, name):
 
     meshEntry = {}
     meshEntry["Path"] = 'Meshes/' + name + '.glb'
+    print(dir(obj.rigid_body))
     if obj.rigid_body.enabled:
         meshEntry["Dynamism"] = "Dynamic"
     else:
@@ -186,6 +187,10 @@ class ExportTemptestScene(bpy.types.Operator):
         scene = context.scene
         for obj in scene.objects:
             if obj.type == 'MESH':
+
+                if not obj.rigid_body:
+                    continue
+
                 baseName = get_base_mesh_name(obj.name)
                 if not(baseName in meshes):
                     meshes[baseName] = export_mesh_to_gltf(obj, baseName)
@@ -218,7 +223,6 @@ class ExportTemptestScene(bpy.types.Operator):
         
 
         return {'FINISHED'}    
-    
     
     
 def register():

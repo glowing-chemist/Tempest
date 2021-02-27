@@ -20,6 +20,7 @@ class Level
 {
 public:
     Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine*, const std::filesystem::path& path, const std::string& name);
+    Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine*, const std::string& name);
 
     Scene* getScene()
     {
@@ -60,6 +61,12 @@ public:
         BELL_TRAP;
     }
 
+    void dumpToSceneFile() const;
+
+    void addMaterialFromFile(std::filesystem::path& materialFile);
+    void addMeshFromFile(std::filesystem::path& path, const MeshType);
+    void addScriptFromFile(std::filesystem::path& path);
+
 private:
 
     void addMesh(const std::string& name, const Json::Value& entry);
@@ -81,7 +88,8 @@ private:
 
     std::unordered_map<std::string, Camera>  mCamera;
     std::unordered_map<std::string, SceneID> mAssetIDs;
-    std::unordered_map<std::string, SceneID> mInstanceIDs;
+    std::unordered_map<SceneID, std::string> mIDToPath;
+    std::unordered_map<std::string, InstanceID> mInstanceIDs;
     std::unordered_map<std::string, MaterialEntry> mMaterials;
 
     std::unique_ptr<Scene> mScene;
