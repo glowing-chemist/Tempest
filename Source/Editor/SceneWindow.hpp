@@ -1,6 +1,10 @@
 #ifndef SCENE_WINDOW_HPP
 #define SCENE_WINDOW_HPP
 
+#include "Engine/Scene.h"
+
+#include <vector>
+
 namespace Tempest
 {
     class Level;
@@ -17,8 +21,16 @@ namespace Tempest
 
         void renderUI();
 
+        void exportSceneToFile();
+
+        const std::vector<InstanceID>& getSelected() const
+        {
+            return mSelected;
+        }
+
     private:
 
+        std::vector<InstanceID> mSelected;
         Level* mCurrentLevel;
 
     };

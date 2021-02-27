@@ -145,6 +145,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
                                                   name);
 
     mInstanceIDs[name] = id;
+    mInstanceMapertials[id] = entry["Material"].asString();
 
     // Now check for collision geometry
     if(entry.isMember("Collider"))
@@ -350,7 +351,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::AmbientOcclusion);
     }
 
-    mMaterials[name] = {matPaths.mMaterialOffset, matPaths.mMaterialTypes};
+    mMaterials[name] = MaterialEntry{matPaths.mMaterialOffset, matPaths.mMaterialTypes};
 
     mScene->addMaterial(matPaths, mRenderEngine);
 }
@@ -493,12 +494,6 @@ void Level::setShadowCameraByName(const std::string& name)
     Camera& cam = mCamera.find(name)->second;
 
     mScene->setShadowingLight(&cam);
-}
-
-
-void Level::dumpToSceneFile() const
-{
-
 }
 
 

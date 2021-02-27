@@ -3,6 +3,7 @@
 #include "PhysicsWorld.hpp"
 #include "ScriptEngine.hpp"
 #include "SceneWindow.hpp"
+#include "InstanceWindow.hpp"
 #include "../Level.hpp"
 #include "ImGuizmo.h"
 
@@ -22,12 +23,22 @@ namespace Tempest
                       90.0f,
                       CameraMode::Perspective)
     {
+        glfwSetWindowUserPointer(mWindow, this);
+
+        auto text_callback = [](GLFWwindow* window, unsigned int codePoint)
+        {
+            Editor* editor = static_cast<Editor*>(glfwGetWindowUserPointer(window));
+            editor->text_callback(window, codePoint);
+        };
+        glfwSetCharCallback(mWindow, text_callback);
+
         ImGui::CreateContext();
 
         mRenderEngine = new RenderEngine(mWindow);
         mPhysicsEngine = new PhysicsWorld();
         mScriptEngine = new ScriptEngine();
         mSceneWindow = new SceneWindow();
+        mInstanceWindow = new InstanceWindow(mRootDir);
 
         initGraphicsState();
 
@@ -70,11 +81,18 @@ namespace Tempest
             if(!mFirstFrame)
                 mRenderEngine->startFrame(frameDelta);
 
+            mSceneWindow->renderUI();
+            const std::vector<InstanceID>& selected = mSceneWindow->getSelected();
+            for(const auto id : selected)
+                mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, id);
+
+            mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Dynamic);
+
+            ImGui::Render();
 
             mRenderEngine->recordScene();
             mRenderEngine->render();
             mRenderEngine->swap();
-            ImGui::EndFrame();
 
             mFirstFrame = false;
         }
@@ -119,6 +137,11 @@ namespace Tempest
         }
     }
 
+    void Editor::text_callback(GLFWwindow*, unsigned int codePoint)
+    {
+        ImGui::GetIO().AddInputCharacter(codePoint);
+    }
+
     void Editor::initGraphicsState()
     {
         mRenderEngine->registerPass(PassType::DepthPre);
@@ -134,6 +157,7 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         mRenderEngine->registerPass(PassType::DebugAABB);
+        mRenderEngine->registerPass(PassType::Overlay);
     }
 
 
@@ -144,6 +168,8 @@ namespace Tempest
         int display_w, display_h;
         glfwGetFramebufferSize(mWindow, &display_w, &display_h);
         io.DisplaySize = ImVec2(static_cast<float>(display_w), static_cast<float>(display_h));
+        ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+        ImGuizmo::SetOrthographic(false);
 
         {
             unsigned char* pixels;

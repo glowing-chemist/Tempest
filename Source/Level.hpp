@@ -61,11 +61,51 @@ public:
         BELL_TRAP;
     }
 
-    void dumpToSceneFile() const;
+    const std::unordered_map<std::string, SceneID>& getAssets() const
+    {
+        return mAssetIDs;
+    }
+
+    const std::unordered_map<std::string, InstanceID> getInstances() const
+    {
+        return mInstanceIDs;
+    }
+
+    const std::unordered_map<std::string, Camera> getCameras() const
+    {
+        return mCamera;
+    }
+
+    std::vector<std::string> getMaterials() const
+    {
+        std::vector<std::string> materialNames{};
+        materialNames.reserve(mMaterials.size());
+        for(const auto&[name, entry] : mMaterials)
+            materialNames.push_back(name);
+
+        return materialNames;
+    }
+
+    const std::string& getMaterialName(const InstanceID id) const
+    {
+        if(auto it = mInstanceMapertials.find(id); it != mInstanceMapertials.end())
+            return it->second;
+        else
+            return nullptr;
+    }
 
     void addMaterialFromFile(std::filesystem::path& materialFile);
     void addMeshFromFile(std::filesystem::path& path, const MeshType);
     void addScriptFromFile(std::filesystem::path& path);
+
+    void setInstanceMaterial(const InstanceID id, const std::string& n)
+    {
+        mInstanceMapertials[id] = n;
+        MeshInstance* instance = mScene->getMeshInstance(id);
+        MaterialEntry entry = mMaterials[n];
+        instance->setMaterialIndex(entry.mMaterialOffset);
+        instance->setMaterialFlags(entry.mMaterialFlags);
+    }
 
 private:
 
@@ -77,19 +117,28 @@ private:
     void addCamera(const std::string& name, const Json::Value& entry);
     void processGlobals(const std::string& name, const Json::Value& entry);
 
-    std::string mName;
-    std::filesystem::path mWorkingDir;
-
     struct MaterialEntry
     {
+        MaterialEntry() :
+                mMaterialOffset{0},
+                mMaterialFlags{0} {}
+
+        MaterialEntry(const uint32_t o, const uint32_t f) :
+                mMaterialOffset{o},
+                mMaterialFlags{f} {}
+
         uint32_t mMaterialOffset;
         uint32_t mMaterialFlags;
     };
+
+    std::string mName;
+    std::filesystem::path mWorkingDir;
 
     std::unordered_map<std::string, Camera>  mCamera;
     std::unordered_map<std::string, SceneID> mAssetIDs;
     std::unordered_map<SceneID, std::string> mIDToPath;
     std::unordered_map<std::string, InstanceID> mInstanceIDs;
+    std::unordered_map<InstanceID, std::string> mInstanceMapertials;
     std::unordered_map<std::string, MaterialEntry> mMaterials;
 
     std::unique_ptr<Scene> mScene;

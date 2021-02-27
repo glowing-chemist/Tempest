@@ -12,6 +12,7 @@ class RenderEngine;
 namespace Tempest
 {
     class SceneWindow;
+    class InstanceWindow;
     class Level;
     class PhysicsWorld;
     class ScriptEngine;
@@ -23,6 +24,8 @@ namespace Tempest
         Editor(GLFWwindow* window, std::filesystem::path& directory);
 
         void run();
+
+        void text_callback(GLFWwindow* window, unsigned int codePoint);
 
     private:
 
@@ -40,6 +43,7 @@ namespace Tempest
         PhysicsWorld* mPhysicsEngine;
         ScriptEngine* mScriptEngine;
         SceneWindow* mSceneWindow;
+        InstanceWindow* mInstanceWindow;
 
         Camera mEditorCamera;
         double mMousePosition[2];

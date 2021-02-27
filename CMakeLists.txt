@@ -13,22 +13,22 @@ add_subdirectory(Source/bullet3)
 
 include_directories(	"${BELL_PATH}"
     "${BELL_PATH}/Include"
-            		"${BELL_PATH}/Source"    
-        		"${BELL_PATH}/ThirdParty/GLFW3/glfw-3.2.1/include"    
-                        "${BELL_PATH}/ThirdParty/assimp-4.1.0/include"    
-                        "${BELL_PATH}/ThirdParty/imgui-master"    
-                        "${BELL_PATH}/ThirdParty/glslang"    
-                        "${BELL_PATH}/ThirdParty/imgui-node-editor/NodeEditor/Include"    
-                    	"${BELL_PATH}/ThirdParty/glm"
-		"${BELL_PATH}/ThirdParty/imgui-guizmo"
-		"${BELL_PATH}/ThirdParty/stb_image"
-			"Source/lua/src"
-			"Source/bullet3/src/"
-			"Source/jsoncpp/include"
-		"Source/Physics"
-		"Source/Graphics"
-		"Source/GamePlay"
-		"Source/Scripting")
+    "${BELL_PATH}/Source"
+    "${BELL_PATH}/ThirdParty/GLFW3/glfw-3.2.1/include"
+    "${BELL_PATH}/ThirdParty/assimp-4.1.0/include"
+    "${BELL_PATH}/ThirdParty/imgui-master"
+    "${BELL_PATH}/ThirdParty/glslang"
+    "${BELL_PATH}/ThirdParty/imgui-node-editor/NodeEditor/Include"
+    "${BELL_PATH}/ThirdParty/glm"
+	"${BELL_PATH}/ThirdParty/imgui-guizmo"
+	"${BELL_PATH}/ThirdParty/stb_image"
+	"Source/lua/src"
+	"Source/bullet3/src/"
+	"Source/jsoncpp/include"
+	"Source/Physics"
+	"Source/Graphics"
+	"Source/GamePlay"
+	"Source/Scripting")
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/Assets" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/")
 
