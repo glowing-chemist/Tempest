@@ -47,11 +47,11 @@ namespace Tempest
         std::filesystem::path sceneFile = mRootDir / "scene.json";
         if(std::filesystem::exists(sceneFile))
         {
-            mCurrentOpenLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, sceneFile, "");
+            mCurrentOpenLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, sceneFile, mInstanceWindow, mSceneWindow);
         }
         else
         {
-            mCurrentOpenLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, "");
+            mCurrentOpenLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, sceneFile.parent_path(), "NewLevel", mInstanceWindow, mSceneWindow);
         }
 
         mSceneWindow->setLevel(mCurrentOpenLevel);
@@ -81,12 +81,17 @@ namespace Tempest
             if(!mFirstFrame)
                 mRenderEngine->startFrame(frameDelta);
 
-            mSceneWindow->renderUI();
+            drawMenuBar();
+            bool refitNeeded = mSceneWindow->renderUI();
             const std::vector<InstanceID>& selected = mSceneWindow->getSelected();
             for(const auto id : selected)
-                mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, id);
+                refitNeeded = refitNeeded || mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, id);
 
-            mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Dynamic);
+            if(refitNeeded)
+            {
+                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Dynamic);
+                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Static);
+            }
 
             ImGui::Render();
 
@@ -116,12 +121,9 @@ namespace Tempest
             mousePressed[i] = pressed == GLFW_PRESS;
         }
 
-        if(io.WantCaptureMouse)
-        {
-            memcpy(&io.MouseDown[0], &mousePressed[0], sizeof(bool) * 5);
+        memcpy(&io.MouseDown[0], &mousePressed[0], sizeof(bool) * 5);
 
-        }
-        else if(mousePressed[1])
+        if(mousePressed[1])
         {
             if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
                 mEditorCamera.moveForward(0.5f);
@@ -176,5 +178,22 @@ namespace Tempest
             int width, height;
             io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
         }
+    }
+
+    void Editor::drawMenuBar()
+    {
+        ImGui::BeginMainMenuBar();
+
+        if (ImGui::BeginMenu("File"))
+        {
+            if(ImGui::MenuItem("Export"))
+            {
+                mSceneWindow->exportSceneToFile(mInstanceWindow);
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
     }
 }

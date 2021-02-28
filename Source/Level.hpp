@@ -15,12 +15,31 @@ namespace Tempest
 
     class PhysicsWorld;
     class ScriptEngine;
+    class SceneWindow;
+    class InstanceWindow;
 
 class Level
 {
 public:
-    Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine*, const std::filesystem::path& path, const std::string& name);
-    Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine*, const std::string& name);
+    Level(RenderEngine* eng,
+          PhysicsWorld* physWorld,
+          ScriptEngine*,
+          const std::filesystem::path& path,
+          InstanceWindow* instanceWindow = nullptr,
+          SceneWindow* sceneWindow = nullptr);
+
+    Level(RenderEngine* eng,
+          PhysicsWorld* physWorld,
+          ScriptEngine*,
+          const std::filesystem::path& path,
+          const std::string& name,
+          InstanceWindow* instanceWindow = nullptr,
+          SceneWindow* sceneWindow = nullptr);
+
+    const std::filesystem::path& getWorkingDirectory() const
+    {
+        return mWorkingDir;
+    }
 
     Scene* getScene()
     {
@@ -66,6 +85,11 @@ public:
         return mAssetIDs;
     }
 
+    std::string getAssetPath(const SceneID id)
+    {
+        return mIDToPath[id];
+    }
+
     const std::unordered_map<std::string, InstanceID> getInstances() const
     {
         return mInstanceIDs;
@@ -74,6 +98,11 @@ public:
     const std::unordered_map<std::string, Camera> getCameras() const
     {
         return mCamera;
+    }
+
+    std::string getAssetName(const SceneID id)
+    {
+        return mAssetNames[id];
     }
 
     std::vector<std::string> getMaterials() const
@@ -85,37 +114,6 @@ public:
 
         return materialNames;
     }
-
-    const std::string& getMaterialName(const InstanceID id) const
-    {
-        if(auto it = mInstanceMapertials.find(id); it != mInstanceMapertials.end())
-            return it->second;
-        else
-            return nullptr;
-    }
-
-    void addMaterialFromFile(std::filesystem::path& materialFile);
-    void addMeshFromFile(std::filesystem::path& path, const MeshType);
-    void addScriptFromFile(std::filesystem::path& path);
-
-    void setInstanceMaterial(const InstanceID id, const std::string& n)
-    {
-        mInstanceMapertials[id] = n;
-        MeshInstance* instance = mScene->getMeshInstance(id);
-        MaterialEntry entry = mMaterials[n];
-        instance->setMaterialIndex(entry.mMaterialOffset);
-        instance->setMaterialFlags(entry.mMaterialFlags);
-    }
-
-private:
-
-    void addMesh(const std::string& name, const Json::Value& entry);
-    void addMeshInstance(const std::string& name, const Json::Value& entry);
-    void addLight(const std::string& name, const Json::Value& entry);
-    void addMaterial(const std::string& name, const Json::Value& entry);
-    void addScript(const std::string& name, const Json::Value& entry);
-    void addCamera(const std::string& name, const Json::Value& entry);
-    void processGlobals(const std::string& name, const Json::Value& entry);
 
     struct MaterialEntry
     {
@@ -129,13 +127,62 @@ private:
 
         uint32_t mMaterialOffset;
         uint32_t mMaterialFlags;
+
+        std::string mAlbedoPath;
+        std::string mMetalnessPath;
+        std::string mRoughnessPath;
+        std::string mNormalPath;
+        std::string mEmissivePath;
+        std::string mOcclusionPath;
     };
+
+    const std::unordered_map<std::string, MaterialEntry>& getMaterialEntries() const
+    {
+        return mMaterials;
+    }
+
+    const std::string& getMaterialName(const InstanceID id) const
+    {
+        if(auto it = mInstanceMapertials.find(id); it != mInstanceMapertials.end())
+            return it->second;
+        else
+            return nullptr;
+    }
+
+    void addMeshFromFile(const std::filesystem::path& path, const MeshType);
+    void addMeshInstance(const std::string& name, const SceneID, const std::string& materialsName, const float3& pos,
+                         const quat& rotation, const float3& scale);
+
+    void setInstanceMaterial(const InstanceID id, const std::string& n)
+    {
+        mInstanceMapertials[id] = n;
+        MeshInstance* instance = mScene->getMeshInstance(id);
+        MaterialEntry entry = mMaterials[n];
+        instance->setMaterialIndex(entry.mMaterialOffset);
+        instance->setMaterialFlags(entry.mMaterialFlags);
+    }
+
+    const std::array<std::string, 6>& getSkybox() const
+    {
+        return mSkybox;
+    }
+
+private:
+
+    void addMesh(const std::string& name, const Json::Value& entry);
+    void addMeshInstance(const std::string& name, const Json::Value& entry);
+    void addLight(const std::string& name, const Json::Value& entry);
+    void addMaterial(const std::string& name, const Json::Value& entry);
+    void addScript(const std::string& name, const Json::Value& entry);
+    void addCamera(const std::string& name, const Json::Value& entry);
+    void processGlobals(const std::string& name, const Json::Value& entry);
 
     std::string mName;
     std::filesystem::path mWorkingDir;
 
     std::unordered_map<std::string, Camera>  mCamera;
     std::unordered_map<std::string, SceneID> mAssetIDs;
+    std::unordered_map<SceneID, std::string> mAssetNames;
     std::unordered_map<SceneID, std::string> mIDToPath;
     std::unordered_map<std::string, InstanceID> mInstanceIDs;
     std::unordered_map<InstanceID, std::string> mInstanceMapertials;
@@ -145,6 +192,13 @@ private:
     RenderEngine* mRenderEngine;
     PhysicsWorld* mPhysWorld;
     ScriptEngine* mScriptEngine;
+
+    std::array<std::string, 6> mSkybox;
+    std::vector<std::string> mGlobalScripts;
+
+    // Used to hooks in the editor.
+    SceneWindow* mSceneWindow;
+    InstanceWindow* mInstanceWindow;
 };
 
 }

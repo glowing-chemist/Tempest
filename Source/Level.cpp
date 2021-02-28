@@ -4,6 +4,8 @@
 
 #include "PhysicsWorld.hpp"
 #include "ScriptEngine.hpp"
+#include "Editor/InstanceWindow.hpp"
+#include "Editor/SceneWindow.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -12,13 +14,20 @@
 namespace Tempest
 {
 
-Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEngine, const std::filesystem::path& path, const std::string& name) :
-        mName(name),
+Level::Level(RenderEngine *eng,
+             PhysicsWorld* physWorld,
+             ScriptEngine* scriptEngine,
+             const std::filesystem::path& path,
+             InstanceWindow* instanceWindow,
+             SceneWindow* sceneWindow) :
+        mName(path.stem().string()),
         mWorkingDir(path.parent_path().string()),
         mScene(new Scene(path)),
         mRenderEngine(eng),
         mPhysWorld{physWorld},
-        mScriptEngine{scriptEngine}
+        mScriptEngine{scriptEngine},
+        mInstanceWindow{instanceWindow},
+        mSceneWindow{sceneWindow}
 {
     std::ifstream sceneFile;
     sceneFile.open(path);
@@ -50,15 +59,61 @@ Level::Level(RenderEngine *eng, PhysicsWorld* physWorld, ScriptEngine* scriptEng
 }
 
 
-Level::Level(RenderEngine* eng, PhysicsWorld* physWorld, ScriptEngine* scriptEngine, const std::string& name) :
+Level::Level(RenderEngine* eng,
+             PhysicsWorld* physWorld,
+             ScriptEngine* scriptEngine,
+             const std::filesystem::path& path,
+             const std::string& name,
+             InstanceWindow* instanceWindow,
+             SceneWindow* sceneWindow) :
         mName(name),
-        mWorkingDir("."),
+        mWorkingDir(path),
         mScene(new Scene(name)),
         mRenderEngine(eng),
         mPhysWorld{physWorld},
-        mScriptEngine{scriptEngine}
+        mScriptEngine{scriptEngine},
+        mInstanceWindow{instanceWindow},
+        mSceneWindow{sceneWindow}
 {
+    // Load materials.
+    const std::filesystem::path materialsDir = mWorkingDir / "Textures";
+    BELL_ASSERT(std::filesystem::exists(materialsDir), "Missing textures directory")
+    for(const auto it : std::filesystem::directory_iterator(materialsDir))
+    {
+        if(it.path().extension() == ".material")
+        {
+            Json::Value materialEntry;
+            std::ifstream materialFile{};
+            materialFile.open(it.path());
 
+            BELL_ASSERT(materialFile.is_open(), "Failed to open material file")
+
+            materialFile >> materialEntry;
+            addMaterial(it.path().stem().string(), materialEntry);
+        }
+    }
+
+    // Load meshes
+    const std::filesystem::path meshesDir = mWorkingDir / "Meshes";
+    BELL_ASSERT(std::filesystem::exists(meshesDir), "Missing meshes directory")
+    for(const auto it : std::filesystem::directory_iterator(meshesDir))
+    {
+        const std::string extension = it.path().extension().string();
+        if(extension == ".glb" || extension == ".fbx" || extension == ".gltf")
+        {
+            addMeshFromFile(it.path(), MeshType::Dynamic);
+        }
+    }
+
+    // load default skybox.
+    std::array<std::string, 6> skybox{"./Assets/skybox/px.png",
+                                      "./Assets/skybox/nx.png",
+                                      "./Assets/skybox/py.png",
+                                      "./Assets/skybox/ny.png",
+                                      "./Assets/skybox/pz.png",
+                                      "./Assets/skybox/nz.png"};
+    mSkybox = skybox;
+    mScene->loadSkybox(skybox, mRenderEngine);
 }
 
 
@@ -68,7 +123,7 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
     const std::string path = entry["Path"].asString();
     const std::string type = entry["Dynamism"].asString();
 
-    const std::vector<SceneID> ids = mScene->loadFile((mWorkingDir / path).string(), type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine);
+    const std::vector<SceneID> ids = mScene->loadFile((mWorkingDir / path).string(), type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine, false);
     for(uint32_t i = 0; i < ids.size(); ++i)
     {
         const SceneID id = ids[i];
@@ -78,6 +133,10 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
             mAssetIDs[name] = id;
 
         mIDToPath[id] = path;
+        mAssetNames[id] = name;
+
+        if(mSceneWindow)
+            mSceneWindow->setAssetDynamic(id, type == "Dynamic");
     }
 }
 
@@ -133,9 +192,9 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         materialFlags = material.mMaterialFlags;
     }
 
-    const float4x4 transform = glm::translate(float4x4(1.0f), position) *
-                                            glm::scale(float4x4(1.0f), scale) *
-                                            glm::mat4_cast(rotation);
+    const float4x4 transform =  glm::translate(float4x4(1.0f), position) *
+                                glm::mat4_cast(rotation) *
+                                glm::scale(float4x4(1.0f), scale);
 
     const InstanceID id = mScene->addMeshInstance(assetID,
                                                   kInvalidInstanceID,
@@ -215,6 +274,9 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         }
 
         mPhysWorld->addObject(id, entityType, colliderType, position, rotation, collisderScale, mass);
+
+        if(mInstanceWindow)
+            mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType == PhysicsEntityType::DynamicRigid || entityType == PhysicsEntityType::Kinematic);
     }
 
     if(entry.isMember("Scripts"))
@@ -225,6 +287,9 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             const Json::Value& gamePlayScript = scriptEntry["GamePlay"];
             const std::string func = gamePlayScript.asString();
             mScriptEngine->registerEntityWithScript(func, id);
+
+            if(mInstanceWindow)
+                mInstanceWindow->setInstanceScript(id, func);
         }
     }
 
@@ -302,11 +367,14 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
     Scene::MaterialPaths matPaths{};
     matPaths.mMaterialOffset = mScene->getMaterials().size();
 
+    MaterialEntry matEntry{};
+
     if(entry.isMember("Albedo"))
     {
         const std::string path = entry["Albedo"].asString();
         matPaths.mAlbedoorDiffusePath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Albedo);
+        matEntry.mAlbedoPath = path;
     }
 
     if(entry.isMember("Normal"))
@@ -314,6 +382,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Normal"].asString();
         matPaths.mNormalsPath =  (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Normals);
+        matEntry.mNormalPath = path;
     }
 
     if(entry.isMember("Roughness"))
@@ -321,6 +390,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Roughness"].asString();
         matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Roughness);
+        matEntry.mRoughnessPath = path;
     }
 
     if(entry.isMember("Metalness"))
@@ -328,6 +398,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Metalness"].asString();
         matPaths.mMetalnessOrSpecularPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Metalness);
+        matEntry.mMetalnessPath = path;
     }
 
     if(entry.isMember("MetalnessRoughness"))
@@ -335,6 +406,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["MetalnessRoughness"].asString();
         matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::CombinedMetalnessRoughness);
+        matEntry.mRoughnessPath = path;
     }
 
     if(entry.isMember("Emissive"))
@@ -342,6 +414,7 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Emissive"].asString();
         matPaths.mEmissivePath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Emisive);
+        matEntry.mEmissivePath = path;
     }
 
     if(entry.isMember("Occlusion"))
@@ -349,9 +422,12 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Occlusion"].asString();
         matPaths.mAmbientOcclusionPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::AmbientOcclusion);
+        matEntry.mOcclusionPath = path;
     }
 
-    mMaterials[name] = MaterialEntry{matPaths.mMaterialOffset, matPaths.mMaterialTypes};
+    matEntry.mMaterialOffset = matPaths.mMaterialOffset;
+    matEntry.mMaterialFlags = matPaths.mMaterialTypes;
+    mMaterials[name] = matEntry;
 
     mScene->addMaterial(matPaths, mRenderEngine);
 }
@@ -456,6 +532,8 @@ void Level::processGlobals(const std::string& name, const Json::Value& entry)
         }
 
         mScene->loadSkybox(skyboxPaths, mRenderEngine);
+        mSkybox = {skyboxes[0].asString(), skyboxes[1].asString(), skyboxes[2].asString(),
+                   skyboxes[3].asString(), skyboxes[4].asString(), skyboxes[5].asString()};
     }
 
     if(entry.isMember("ShadowMapRes"))
@@ -497,21 +575,35 @@ void Level::setShadowCameraByName(const std::string& name)
 }
 
 
-void Level::addMaterialFromFile(std::filesystem::path& materialFile)
+void Level::addMeshFromFile(const std::filesystem::path& path, const MeshType type)
 {
+    BELL_ASSERT(std::filesystem::is_regular_file(path) && std::filesystem::exists(path), "File is incorrect")
+    StaticMesh mesh(path.string(), VertexAttributes::Position4 | VertexAttributes::Normals | VertexAttributes::Albedo |
+                    VertexAttributes::TextureCoordinates | VertexAttributes::Tangents, true);
 
+    const SceneID id = mScene->addMesh(mesh, type);
+
+    mAssetNames[id] = path.stem().string();
+    mIDToPath[id] = path.string();
+    mAssetIDs[path.stem().string()] = id;
 }
 
-
-void Level::addMeshFromFile(std::filesystem::path& path, const MeshType)
+void Level::addMeshInstance(const std::string& name, const SceneID meshID, const std::string& materialsName, const float3& pos,
+                         const quat& rotation, const float3& scale)
 {
+    const MaterialEntry& matEntry = mMaterials[materialsName];
 
-}
+    const InstanceID id = mScene->addMeshInstance(meshID,
+                                                  kInvalidInstanceID,
+                                                  pos,
+                                                  scale,
+                                                  rotation,
+                                                  matEntry.mMaterialOffset,
+                                                  matEntry.mMaterialFlags,
+                                                  name);
 
-
-void Level::addScriptFromFile(std::filesystem::path& path)
-{
-
+    mInstanceMapertials[id] = materialsName;
+    mInstanceIDs[name] = id;
 }
 
 }

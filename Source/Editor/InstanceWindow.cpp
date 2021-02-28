@@ -23,10 +23,12 @@ namespace Tempest
         }
     }
 
-    void InstanceWindow::drawInstanceWindow(Level* level, const InstanceID id)
+    bool InstanceWindow::drawInstanceWindow(Level* level, const InstanceID id)
     {
         Scene* scene = level->getScene();
         MeshInstance* instance = scene->getMeshInstance(id);
+        std::string name = instance->getName();
+        bool modified = false;
         if(ImGui::Begin(instance->getName().c_str()))
         {
             const Camera& camera = scene->getCamera();
@@ -38,7 +40,7 @@ namespace Tempest
             instance->newFrame();
 
             float3 position = instance->getPosition();
-            bool modified = ImGui::InputFloat3("Position", &position.x);
+            modified = ImGui::InputFloat3("Position", &position.x);
 
             float3 scale = instance->getScale();
             modified = modified || ImGui::InputFloat3("Scale", &scale.x);
@@ -58,7 +60,7 @@ namespace Tempest
 
             if(!modified) {
                 float4x4 mat = instance->getTransMatrix();
-                ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj), static_cast<ImGuizmo::OPERATION>(entry.mGuizmoIndex),
+                modified = ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj), static_cast<ImGuizmo::OPERATION>(entry.mGuizmoIndex),
                                      entry.mGuizmoIndex == 0 ? ImGuizmo::MODE::WORLD : ImGuizmo::MODE::LOCAL,
                                      glm::value_ptr(mat));
 
@@ -114,6 +116,9 @@ namespace Tempest
             ImGui::Checkbox("Has collider", &entry.mHasCollider);
             if(entry.mHasCollider)
             {
+                ImGui::Checkbox("Dynamic", &entry.mDynamic);
+                ImGui::InputFloat("Mass", &entry.mMass);
+
                 std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane"};
                 const std::string& activeCollider = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
                 if (ImGui::BeginCombo("Collider", activeCollider.c_str()))
@@ -134,5 +139,31 @@ namespace Tempest
             }
         }
         ImGui::End();
+
+        return modified;
     }
+
+    void InstanceWindow::setInstanceScript(const InstanceID id, const std::string& script)
+    {
+        InstanceEntry& entry = mInstanceInfo[id];
+        entry.mHasScript = true;
+
+        auto scriptIt = std::find(mScriptNames.begin(), mScriptNames.end(), script);
+        const uint32_t index = std::distance(mScriptNames.begin(), scriptIt);
+        entry.mScriptIndex = index;
+    }
+
+
+    void InstanceWindow::setInstanceCollider(const InstanceID id,
+                                             const BasicCollisionGeometry geom,
+                                             const float mass,
+                                             const bool dynamic)
+    {
+        InstanceEntry& entry = mInstanceInfo[id];
+        entry.mHasCollider = true;
+        entry.mCollisionGeom = geom;
+        entry.mDynamic = dynamic;
+        entry.mMass = mass;
+    }
+
 }

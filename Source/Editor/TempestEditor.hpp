@@ -32,6 +32,7 @@ namespace Tempest
         void pumpInputQueue();
         void initGraphicsState();
         void initImGuiState();
+        void drawMenuBar();
 
         bool mFirstFrame = true;
 
