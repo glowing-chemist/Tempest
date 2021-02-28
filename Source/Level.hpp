@@ -90,12 +90,12 @@ public:
         return mIDToPath[id];
     }
 
-    const std::unordered_map<std::string, InstanceID> getInstances() const
+    const std::unordered_map<std::string, InstanceID>& getInstances() const
     {
         return mInstanceIDs;
     }
 
-    const std::unordered_map<std::string, Camera> getCameras() const
+    const std::unordered_map<std::string, Camera>& getCameras() const
     {
         return mCamera;
     }

@@ -133,7 +133,11 @@ namespace Tempest
                 const std::string path = mCurrentLevel->getAssetPath(id);
                  Json::Value mesh{};
 
-                 mesh["Path"] = std::filesystem::path(path).lexically_relative(mCurrentLevel->getWorkingDirectory()).string();
+                 std::filesystem::path pathfs = std::filesystem::path(path);
+                 if(pathfs.is_absolute())
+                    mesh["Path"] = std::filesystem::path(path).lexically_relative(mCurrentLevel->getWorkingDirectory()).string();
+                 else
+                     mesh["Path"] = path;
                  mesh["Dynamism"] = isDynamic ? "Dynamic" : "Static";
 
                 meshJson[name] = mesh;
