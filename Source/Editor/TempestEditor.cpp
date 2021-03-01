@@ -37,7 +37,7 @@ namespace Tempest
         mRenderEngine = new RenderEngine(mWindow);
         mPhysicsEngine = new PhysicsWorld();
         mScriptEngine = new ScriptEngine();
-        mSceneWindow = new SceneWindow();
+        mSceneWindow = new SceneWindow(&mEditorCamera);
         mInstanceWindow = new InstanceWindow(mRootDir);
 
         initGraphicsState();
@@ -125,17 +125,19 @@ namespace Tempest
 
         if(mousePressed[1])
         {
-            if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
-                mEditorCamera.moveForward(0.5f);
-            if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
-                mEditorCamera.moveBackward(0.5f);
-            if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
-                mEditorCamera.moveLeft(0.5f);
-            if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
-                mEditorCamera.moveRight(0.5f);
+            Camera& currentCam = *mSceneWindow->getCurrentCamera();
 
-            mEditorCamera.rotatePitch(cursorDelta.y);
-            mEditorCamera.rotateWorldUp(-cursorDelta.x);
+            if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
+                currentCam.moveForward(0.5f);
+            if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
+                currentCam.moveBackward(0.5f);
+            if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
+                currentCam.moveLeft(0.5f);
+            if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
+                currentCam.moveRight(0.5f);
+
+            currentCam.rotatePitch(cursorDelta.y);
+            currentCam.rotateWorldUp(-cursorDelta.x);
         }
     }
 

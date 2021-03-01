@@ -606,4 +606,10 @@ void Level::addMeshInstance(const std::string& name, const SceneID meshID, const
     mInstanceIDs[name] = id;
 }
 
+void Level::addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode)
+{
+    Camera newCam(pos, dir, 1920.0f / 1080.0f, 0.1, 200.0f, 90.0f, mode);
+    mCamera.insert({name, newCam});
+}
+
 }

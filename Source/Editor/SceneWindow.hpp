@@ -5,6 +5,7 @@
 
 #include <vector>
 
+
 namespace Tempest
 {
     class Level;
@@ -13,7 +14,7 @@ namespace Tempest
     class SceneWindow
     {
     public:
-        SceneWindow();
+        SceneWindow(Camera* editorCam);
 
         void setLevel(Level* l);
 
@@ -31,15 +32,28 @@ namespace Tempest
             mAssetDynamism[id] = d;
         }
 
+        Camera* getCurrentCamera()
+        {
+            return mCurrentCamera;
+        }
+
     private:
 
         bool drawInstanceAddWindow();
+        void drawCameraAddWindow();
 
         // Data for add instance window.
         char mInstanceAddTextEdit[64];
         SceneID mAssetToAdd;
         std::string mSelectedMaterial;
         bool mShowInstanceAddWindow = false;
+
+        // Data for add camera Window
+        char mCameraAddTextEdit[64];
+        std::string mCurrentCameraName;
+        Camera* mCurrentCamera;
+        std::vector<std::pair<std::string, Camera*>> mCameras;
+        bool mShowAddCameraWindow = false;
 
         std::vector<InstanceID> mSelected;
         std::unordered_map<SceneID, bool> mAssetDynamism;

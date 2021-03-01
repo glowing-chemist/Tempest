@@ -8,16 +8,18 @@
 
 namespace Tempest
 {
-    SceneWindow::SceneWindow() :
+    SceneWindow::SceneWindow(Camera* editorCam) :
         mCurrentLevel{nullptr}
     {
         std::memset(mInstanceAddTextEdit, 0, 64);
+        std::memset(mCameraAddTextEdit, 0, 64);
+        mCurrentCameraName = "EditorCamera";
+        mCurrentCamera = editorCam;
+        mCameras.push_back({mCurrentCameraName, editorCam});
     }
 
     bool SceneWindow::renderUI()
     {
-        bool changedScene = false;
-
         if(mCurrentLevel)
         {
             if (ImGui::Begin("Scene"))
@@ -79,14 +81,71 @@ namespace Tempest
                     }
 
                     ImGui::TreePop();
+
+                    if (ImGui::BeginCombo("Active script", mCurrentCameraName.c_str()))
+                    {
+                        for (uint32_t n = 0; n < mCameras.size(); n++)
+                        {
+                            const std::string& cameraName = mCameras[n].first;
+                            bool is_selected = cameraName == mCurrentCameraName;
+                            if (ImGui::Selectable(cameraName.c_str(), is_selected))
+                            {
+                                mCurrentCameraName = cameraName;
+                                mCurrentCamera = mCameras[n].second;
+                                mCurrentLevel->getScene()->setCamera(mCurrentCamera);
+                            }
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    float nearPlane = mCurrentCamera->getNearPlane();
+                    float farPlane = mCurrentCamera->getFarPlane();
+                    float fov = mCurrentCamera->getFOV();
+                    float aspect = mCurrentCamera->getAspect();
+
+                    if(ImGui::SliderFloat("near plane", &nearPlane, 0.01f, 100.0f))
+                        mCurrentCamera->setNearPlane(nearPlane);
+                    if(ImGui::SliderFloat("far plane", &farPlane, 50.0f, 2000.0f))
+                        mCurrentCamera->setFarPlane(farPlane);
+                    if(ImGui::SliderFloat("field of view", &fov, 45.0f, 180.0f))
+                        mCurrentCamera->setFOVDegrees(fov);
+                    if(ImGui::SliderFloat("aspect", &aspect, 0.1f, 3.0f))
+                        mCurrentCamera->setAspect(aspect);
+
+                    float2 orthoSize = mCurrentCamera->getOrthographicSize();
+                    if(ImGui::InputFloat2("Ortho size", &orthoSize.x))
+                        mCurrentCamera->setOrthographicSize(orthoSize);
+
+                    const char* cameraModes[] = {"Infintie perspective (broken in editor)", "Perspective", "Orthographic"};
+                    if(ImGui::BeginCombo("Camera Mode", cameraModes[static_cast<uint32_t>(mCurrentCamera->getMode())]))
+                    {
+                        for(uint32_t i = 0; i < 3; ++i)
+                        {
+                            if(ImGui::Selectable(cameraModes[i]))
+                            {
+                                mCurrentCamera->setMode(static_cast<CameraMode>(i));
+                            }
+                        }
+
+                        ImGui::EndCombo();
+                    }
+
+                    if(ImGui::Button("New camera"))
+                        mShowAddCameraWindow = true;
                 }
 
                 ImGui::End();
             }
         }
 
+        bool changedScene = false;
         if(mShowInstanceAddWindow)
             changedScene = drawInstanceAddWindow();
+
+        if(mShowAddCameraWindow)
+            drawCameraAddWindow();
 
         return changedScene;
     }
@@ -319,10 +378,36 @@ namespace Tempest
         return meshAdded;
     }
 
+    void SceneWindow::drawCameraAddWindow()
+    {
+        if(ImGui::Begin("Add camera"))
+        {
+            ImGui::InputText("Name", mCameraAddTextEdit, 64);
+
+            if(ImGui::Button("Add"))
+            {
+                std::string cameraName = mCameraAddTextEdit;
+                mCurrentLevel->addCamera(cameraName, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, CameraMode::Perspective);
+                std::unordered_map<std::string, Camera>& cams = mCurrentLevel->getCameras();
+                Camera* cam = &cams.find(cameraName)->second;
+                mCameras.push_back({cameraName, cam});
+
+                std::memset(mCameraAddTextEdit, 0, 64);
+                mShowAddCameraWindow = false;
+            }
+        }
+        ImGui::End();
+    }
+
     void SceneWindow::setLevel(Level* l)
     {
         mCurrentLevel = l;
         std::vector<std::string> materials = mCurrentLevel->getMaterials();
         mSelectedMaterial = materials[0];
+
+        std::unordered_map<std::string, Camera>& cameras = mCurrentLevel->getCameras();
+        for(auto&[name, cam] : cameras)
+            mCameras.push_back({name, &cam});
+
     }
 }

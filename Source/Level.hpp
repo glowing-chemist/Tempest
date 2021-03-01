@@ -100,6 +100,11 @@ public:
         return mCamera;
     }
 
+    std::unordered_map<std::string, Camera>& getCameras()
+    {
+        return mCamera;
+    }
+
     std::string getAssetName(const SceneID id)
     {
         return mAssetNames[id];
@@ -152,6 +157,7 @@ public:
     void addMeshFromFile(const std::filesystem::path& path, const MeshType);
     void addMeshInstance(const std::string& name, const SceneID, const std::string& materialsName, const float3& pos,
                          const quat& rotation, const float3& scale);
+    void addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode);
 
     void setInstanceMaterial(const InstanceID id, const std::string& n)
     {
