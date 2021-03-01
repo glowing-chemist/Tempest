@@ -27,7 +27,9 @@ namespace Tempest
                     mScriptIndex{0},
                     mGuizmoIndex{0},
                     mHasCollider{false},
-                    mCollisionGeom{BasicCollisionGeometry::Box} {}
+                    mCollisionGeom{BasicCollisionGeometry::Box},
+                    mMass{0.f},
+                    mDynamic{false} {}
 
             bool mHasScript;
             uint32_t mScriptIndex;
