@@ -1,0 +1,8 @@
+{
+	"px" : "Textures/bluecloud_ft.jpg",
+    "nx" : "Textures/bluecloud_bk.jpg",
+    "py" : "Textures/bluecloud_up.jpg",
+    "ny" : "Textures/bluecloud_dn.jpg",
+    "pz" : "Textures/bluecloud_rt.jpg",
+    "nz" : "Textures/bluecloud_lf.jpg"
+}

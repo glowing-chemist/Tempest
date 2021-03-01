@@ -189,14 +189,13 @@ namespace Tempest
             for(const auto&[name, id] : assets)
             {
                 const bool isDynamic = mAssetDynamism[id];
-                const std::string path = mCurrentLevel->getAssetPath(id);
+                const std::filesystem::path path = mCurrentLevel->getAssetPath(id);
                  Json::Value mesh{};
 
-                 std::filesystem::path pathfs = std::filesystem::path(path);
-                 if(pathfs.is_absolute())
-                    mesh["Path"] = std::filesystem::path(path).lexically_relative(mCurrentLevel->getWorkingDirectory()).string();
+                 if(path.is_absolute())
+                    mesh["Path"] = path.lexically_relative(mCurrentLevel->getWorkingDirectory()).string();
                  else
-                     mesh["Path"] = path;
+                     mesh["Path"] = path.string();
                  mesh["Dynamism"] = isDynamic ? "Dynamic" : "Static";
 
                 meshJson[name] = mesh;
@@ -252,7 +251,7 @@ namespace Tempest
                     Json::Value collider{};
                     collider["Mass"] = entry.mMass;
                     collider["Type"] = entry.mDynamic ? "Dynamic" : "Static";
-                    std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane"};
+                    std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane", "Mesh"};
                     collider["Geometry"] = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
 
                     instanceJSon["Collider"] = collider;

@@ -80,16 +80,9 @@ Level::Level(RenderEngine* eng,
     BELL_ASSERT(std::filesystem::exists(materialsDir), "Missing textures directory")
     for(const auto it : std::filesystem::directory_iterator(materialsDir))
     {
-        if(it.path().extension() == ".material")
+        if(it.path().extension() == ".material" && it.path().stem().string() != "skybox")
         {
-            Json::Value materialEntry;
-            std::ifstream materialFile{};
-            materialFile.open(it.path());
-
-            BELL_ASSERT(materialFile.is_open(), "Failed to open material file")
-
-            materialFile >> materialEntry;
-            addMaterial(it.path().stem().string(), materialEntry);
+            addMaterialFromFile(it.path());
         }
     }
 
@@ -106,13 +99,26 @@ Level::Level(RenderEngine* eng,
     }
 
     // load default skybox.
-    std::array<std::string, 6> skybox{"./Assets/skybox/px.png",
-                                      "./Assets/skybox/nx.png",
-                                      "./Assets/skybox/py.png",
-                                      "./Assets/skybox/ny.png",
-                                      "./Assets/skybox/pz.png",
-                                      "./Assets/skybox/nz.png"};
+    std::filesystem::path skyboxMaterial = mWorkingDir / "Textures";
+    skyboxMaterial /= "skybox.material";
+    BELL_ASSERT(std::filesystem::exists(skyboxMaterial), "No skybox material file")
+
+    Json::Value skyboxEntry;
+    std::ifstream materialFile{};
+    materialFile.open(skyboxMaterial);
+
+    BELL_ASSERT(materialFile.is_open(), "Failed to open material file")
+
+    materialFile >> skyboxEntry;
+    std::array<std::string, 6> skybox{skyboxEntry["px"].asString(), skyboxEntry["nx"].asString(),
+                                      skyboxEntry["py"].asString(), skyboxEntry["ny"].asString(),
+                                      skyboxEntry["pz"].asString(), skyboxEntry["nz"].asString()};
+
     mSkybox = skybox;
+
+    for(auto& path : skybox)
+        path = (mWorkingDir / path).string();
+
     mScene->loadSkybox(skybox, mRenderEngine);
 }
 
@@ -604,6 +610,18 @@ void Level::addMeshInstance(const std::string& name, const SceneID meshID, const
 
     mInstanceMapertials[id] = materialsName;
     mInstanceIDs[name] = id;
+}
+
+void Level::addMaterialFromFile(const std::filesystem::path& path)
+{
+    Json::Value materialEntry;
+    std::ifstream materialFile{};
+    materialFile.open(path);
+
+    BELL_ASSERT(materialFile.is_open(), "Failed to open material file")
+
+    materialFile >> materialEntry;
+    addMaterial(path.stem().string(), materialEntry);
 }
 
 void Level::addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode)

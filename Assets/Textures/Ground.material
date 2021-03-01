@@ -1,0 +1,6 @@
+{
+	"Albedo" : "Textures/Ground37_col.jpg",
+	"Metalness" : "Textures/Bricks34_mtl.png",
+	"Normal" : "Textures/Ground37_nrm.jpg",
+	"Roughness" : "Textures/Ground37_rgh.jpg"
+}

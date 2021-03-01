@@ -1,0 +1,7 @@
+{
+	"Albedo" : "Textures/01.jpeg",
+	"Metalness" : "Textures/02.png",
+	"Normal" : "Textures/04.jpeg",
+	"Occlusion" : "Textures/05.jpeg",
+	"Roughness" : "Textures/03.jpeg"
+}

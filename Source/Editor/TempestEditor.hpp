@@ -33,6 +33,7 @@ namespace Tempest
         void initGraphicsState();
         void initImGuiState();
         void drawMenuBar();
+        void addNewAssets();
 
         bool mFirstFrame = true;
 

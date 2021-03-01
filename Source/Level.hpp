@@ -85,7 +85,7 @@ public:
         return mAssetIDs;
     }
 
-    std::string getAssetPath(const SceneID id)
+    std::filesystem::path getAssetPath(const SceneID id)
     {
         return mIDToPath[id];
     }
@@ -158,6 +158,7 @@ public:
     void addMeshInstance(const std::string& name, const SceneID, const std::string& materialsName, const float3& pos,
                          const quat& rotation, const float3& scale);
     void addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode);
+    void addMaterialFromFile(const std::filesystem::path&);
 
     void setInstanceMaterial(const InstanceID id, const std::string& n)
     {
@@ -189,7 +190,7 @@ private:
     std::unordered_map<std::string, Camera>  mCamera;
     std::unordered_map<std::string, SceneID> mAssetIDs;
     std::unordered_map<SceneID, std::string> mAssetNames;
-    std::unordered_map<SceneID, std::string> mIDToPath;
+    std::unordered_map<SceneID, std::filesystem::path> mIDToPath;
     std::unordered_map<std::string, InstanceID> mInstanceIDs;
     std::unordered_map<InstanceID, std::string> mInstanceMapertials;
     std::unordered_map<std::string, MaterialEntry> mMaterials;

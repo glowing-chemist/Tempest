@@ -48,6 +48,7 @@ namespace Tempest
         if(std::filesystem::exists(sceneFile))
         {
             mCurrentOpenLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, sceneFile, mInstanceWindow, mSceneWindow);
+            addNewAssets();
         }
         else
         {
@@ -197,5 +198,30 @@ namespace Tempest
         }
 
         ImGui::EndMainMenuBar();
+    }
+
+    void Editor::addNewAssets()
+    {
+        const std::unordered_map<std::string, SceneID>& assets = mCurrentOpenLevel->getAssets();
+        const std::filesystem::path meshPath = mRootDir / "Meshes";
+        for(auto asset : std::filesystem::directory_iterator(meshPath))
+        {
+            const std::string assetToAdd = asset.path().stem().string();
+            if(assets.find(assetToAdd) == assets.end()) // asset not used need to add
+            {
+                mCurrentOpenLevel->addMeshFromFile(asset.path(), MeshType::Dynamic);
+            }
+        }
+
+        const std::unordered_map<std::string, Level::MaterialEntry>& materials = mCurrentOpenLevel->getMaterialEntries();
+        const std::filesystem::path materialPath = mRootDir / "Textures";
+        for(auto asset : std::filesystem::directory_iterator(materialPath))
+        {
+            const std::string assetToAdd = asset.path().stem().string();
+            if(materials.find(assetToAdd) == materials.end() && asset.path().extension() == ".material") // asset not used need to add
+            {
+                mCurrentOpenLevel->addMaterialFromFile(asset.path());
+            }
+        }
     }
 }
