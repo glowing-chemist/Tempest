@@ -46,6 +46,25 @@ void PhysicsWorld::tick(const std::chrono::microseconds diff)
     mWorld->stepSimulation(float(diff.count()) / 1000000.0f, 10);
 }
 
+void PhysicsWorld::updateDynamicObjects(Scene* scene)
+{
+    const btAlignedObjectArray<btRigidBody*>& rigidBodies = mWorld->getNonStaticRigidBodies();
+
+    for(uint32_t i = 0; i < rigidBodies.size(); ++i)
+    {
+        const btRigidBody* rigidBody = rigidBodies[i];
+        const InstanceID id = rigidBody->getUserIndex();
+        MeshInstance* instance = scene->getMeshInstance(id);
+
+        const btTransform& transform = rigidBody->getWorldTransform();
+        const btVector3& position = transform.getOrigin();
+        const btQuaternion& rotation = transform.getRotation();
+
+        instance->setPosition({position.x(), position.y(), position.z()});
+        instance->setRotation({rotation.w(), rotation.x(), rotation.y(), rotation.z()});
+    }
+}
+
 void PhysicsWorld::addObject(const InstanceID id,
                              const PhysicsEntityType type,
                              const BasicCollisionGeometry collisionGeometry,
@@ -69,7 +88,7 @@ void PhysicsWorld::addObject(const InstanceID id,
     body->setUserIndex(id);
 
     if(type == PhysicsEntityType::Kinematic)
-        body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        body->setActivationState(DISABLE_DEACTIVATION);
 
     if(collisionGeometry == BasicCollisionGeometry::Capsule)
         body->setAngularFactor({0.0f, 1.0f, 0.0f});

@@ -39,6 +39,7 @@ public:
     ~PhysicsWorld();
 
     void tick(const std::chrono::microseconds diff);
+    void updateDynamicObjects(Scene*);
 
     void addObject(const InstanceID id,
                    const CollisionMeshType,
@@ -111,13 +112,6 @@ private:
 
     std::vector<uint32_t> mFreeRigidBodyIndices;
     std::vector<std::unique_ptr<btRigidBody>> mRigidBodies;
-
-    struct InstanceInfo
-    {
-        InstanceID mID;
-        PhysicsEntityType mType;
-        uint32_t mIndex;
-    };
 
     std::unordered_map<InstanceID, uint32_t> mInstanceMap;
 };

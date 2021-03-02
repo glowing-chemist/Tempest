@@ -11,7 +11,7 @@ BasicPlayer_init = function(id)
 	TempestEngine_createControllerInstance(id, 0)
 
 	-- Attach the main camera to the player
-	TempestEngine_attachCameraToPlayer(id, "MainCamera", 1.2)
+	TempestEngine_attachCameraToPlayer(id, "MainCamera", 5.0)
 	TempestEngine_attachShadowCameraToPlayer(id, "ShadowCamera")
 
 	playerSize = TempestEngine_getInstanceSize(id)
@@ -71,9 +71,9 @@ BasicPlayer = function(id, tick)
 	local controller = TempestEngine_updateControllerInstance(id)
 	
 	local sprinting = controller.LShft;
-	local speedModifier = 0.01
+	local speedModifier = 0.02
 	if sprinting then
-		speedModifier = 0.05
+		speedModifier = 0.10
 	end
     local x = controller.Lx * speedModifier;
     local z = controller.Ly * speedModifier;
@@ -97,7 +97,7 @@ BasicPlayer = function(id, tick)
     end
 
     local colliderPosition = TempestEngine_getPhysicsBodyPosition(id)
-    colliderPosition.y = colliderPosition.y - (playerSize.y / 1.1)
+    colliderPosition.y = colliderPosition.y - playerSize.y
     TempestEngine_setGraphicsInstancePosition(id, colliderPosition)
 
     TempestEngine_updatePlayersAttachedCameras(id)
@@ -108,17 +108,17 @@ BasicPlayer = function(id, tick)
     end
 
     if moving and sprinting and currentState == State.Resting then
-        TempestEngine_startAnimation(id, kSprintAnimation, true, 2.0)
+        TempestEngine_startAnimation(id, kSprintAnimation, true, 1.0)
         currentState = State.Sprinting
     elseif moving and sprinting and currentState == State.Walking then
         TempestEngine_terminateAnimation(id, kWalkingAnimation)
-        TempestEngine_startAnimation(id, kSprintAnimation, true, 2.0)
+        TempestEngine_startAnimation(id, kSprintAnimation, true, 1.0)
         currentState = State.Sprinting
     elseif ((currentState == State.Resting or currentState == State.Sprinting) and moving and not sprinting) then
         if currentState == State.Sprinting then
             TempestEngine_terminateAnimation(id, kSprintAnimation)
         end
-        TempestEngine_startAnimation(id, kWalkingAnimation, true, 1.0)
+        TempestEngine_startAnimation(id, kWalkingAnimation, true, 0.5)
         currentState = State.Walking
     elseif ((currentState == State.Walking or currentState == State.Sprinting) and not moving) then
         TempestEngine_terminateAnimation(id, kWalkingAnimation)

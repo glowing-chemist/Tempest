@@ -39,7 +39,7 @@ namespace Tempest
     void TempestEngine::loadLevel(const std::filesystem::path& path)
     {
         delete mCurrentLevel;
-        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, mRootDir / path, "test level");
+        mCurrentLevel = new Level(mRenderEngine, mPhysicsEngine, mScriptEngine, mRootDir / path);
 
         mRenderEngine->setScene(mCurrentLevel->getScene());
         mScriptEngine->registerSceneHooks(mCurrentLevel->getScene());
@@ -74,6 +74,8 @@ namespace Tempest
             {
                 mRenderThread->update(mShouldClose, mFirstFrame);
                 std::unique_lock lock = mRenderThread->lock();
+
+                mPhysicsEngine->updateDynamicObjects(mCurrentLevel->getScene());
 
                 mScriptEngine->tick(frameDelta);
 

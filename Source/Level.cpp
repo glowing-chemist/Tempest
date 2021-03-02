@@ -67,7 +67,7 @@ Level::Level(RenderEngine* eng,
              InstanceWindow* instanceWindow,
              SceneWindow* sceneWindow) :
         mName(name),
-        mWorkingDir(path),
+        mWorkingDir(path.parent_path()),
         mScene(new Scene(name)),
         mRenderEngine(eng),
         mPhysWorld{physWorld},
@@ -279,7 +279,12 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             mass = colliderEntry["Mass"].asFloat();
         }
 
-        mPhysWorld->addObject(id, entityType, colliderType, position, rotation, collisderScale, mass);
+        {
+            const StaticMesh* mesh = mScene->getMesh(assetID);
+            const AABB aabb = mesh->getAABB();
+            const float3 center = aabb.getCentralPoint();
+            mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass);
+        }
 
         if(mInstanceWindow)
             mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType == PhysicsEntityType::DynamicRigid || entityType == PhysicsEntityType::Kinematic);

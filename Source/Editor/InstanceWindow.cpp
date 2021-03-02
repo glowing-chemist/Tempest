@@ -73,6 +73,15 @@ namespace Tempest
             instance->setScale(scale);
             instance->setRotation(rotation);
 
+            // Calculate the size of teh scaled mesh in meters.
+            {
+                AABB aabb = instance->getMesh()->getAABB();
+                const float4x4 transform = instance->getTransMatrix();
+                aabb = aabb * transform;
+                const float3 size = aabb.getSideLengths();
+                ImGui::Text("Size X %fm Y %fm Z %fm", size.x, size.y, size.z);
+            }
+
             std::vector<std::string> materials = level->getMaterials();
             std::string activeMaterial = level->getMaterialName(id);
             if (ImGui::BeginCombo("Material", activeMaterial.c_str()))
