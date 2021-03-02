@@ -18,7 +18,6 @@ int main(int argc, char **argv)
 
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // only resize explicitly
     auto* window = glfwCreateWindow(1920, 1080, "Tempest", nullptr, nullptr);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if(argc == 2)
     {

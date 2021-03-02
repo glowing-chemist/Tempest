@@ -197,6 +197,18 @@ namespace Tempest
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Play"))
+        {
+            if(ImGui::MenuItem("Run"))
+            {
+                mSceneWindow->exportSceneToFile(mInstanceWindow);
+                std::string cmd = "Tempest.exe " + mRootDir.string();
+                system(cmd.c_str());
+            }
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 
