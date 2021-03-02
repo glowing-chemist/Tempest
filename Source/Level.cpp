@@ -279,15 +279,21 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             mass = colliderEntry["Mass"].asFloat();
         }
 
+        float restitution = 0.0f;
+        if(colliderEntry.isMember("Restitution"))
+        {
+            restitution = colliderEntry["Restitution"].asFloat();
+        }
+
         {
             const StaticMesh* mesh = mScene->getMesh(assetID);
             const AABB aabb = mesh->getAABB();
             const float3 center = aabb.getCentralPoint();
-            mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass);
+            mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass, restitution);
         }
 
         if(mInstanceWindow)
-            mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType == PhysicsEntityType::DynamicRigid || entityType == PhysicsEntityType::Kinematic);
+            mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType == PhysicsEntityType::DynamicRigid || entityType == PhysicsEntityType::Kinematic, restitution);
     }
 
     if(entry.isMember("Scripts"))

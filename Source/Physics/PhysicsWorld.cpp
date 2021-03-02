@@ -71,7 +71,8 @@ void PhysicsWorld::addObject(const InstanceID id,
                              const float3& pos,
                              const quat& rot,
                              const float3& size,
-                             const float mass)
+                             const float mass,
+                             const float restitution)
 {
     btTransform transform;
     transform.setIdentity();
@@ -84,6 +85,7 @@ void PhysicsWorld::addObject(const InstanceID id,
 
     btDefaultMotionState* myMotionState = new btDefaultMotionState(transform);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, shape, localInertia);
+    rbInfo.m_restitution = restitution;
     btRigidBody* body = new btRigidBody(rbInfo);
     body->setUserIndex(id);
 

@@ -18,7 +18,7 @@ namespace Tempest
         bool drawInstanceWindow(Level*, const InstanceID);
 
         void setInstanceScript(const InstanceID, const std::string& script);
-        void setInstanceCollider(const InstanceID, const BasicCollisionGeometry, const float mass, const bool dynamic);
+        void setInstanceCollider(const InstanceID, const BasicCollisionGeometry, const float mass, const bool dynamic, const float restitution);
 
         struct InstanceEntry
         {
@@ -29,7 +29,8 @@ namespace Tempest
                     mHasCollider{false},
                     mCollisionGeom{BasicCollisionGeometry::Box},
                     mMass{0.f},
-                    mDynamic{false} {}
+                    mDynamic{false},
+                    mRestitution{0.0f} {}
 
             bool mHasScript;
             uint32_t mScriptIndex;
@@ -38,6 +39,7 @@ namespace Tempest
             BasicCollisionGeometry mCollisionGeom;
             float mMass;
             bool mDynamic;
+            float mRestitution;
 
         };
 

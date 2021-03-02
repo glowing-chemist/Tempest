@@ -53,7 +53,9 @@ public:
                    const BasicCollisionGeometry collisionGeometry,
                    const float3& pos,
                    const quat& rot,
-                   const float3& size, const float mass = 0.0f);
+                   const float3& size,
+                   const float mass = 0.0f,
+                   const float restitution = 0.0f);
 
     void removeObject(const InstanceID id);
 

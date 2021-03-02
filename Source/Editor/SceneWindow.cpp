@@ -253,6 +253,7 @@ namespace Tempest
                     collider["Type"] = entry.mDynamic ? "Dynamic" : "Static";
                     std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane", "Mesh"};
                     collider["Geometry"] = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
+                    collider["Restitution"] = entry.mRestitution;
 
                     instanceJSon["Collider"] = collider;
                 }

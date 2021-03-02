@@ -51,6 +51,24 @@ public:
         return mName;
     }
 
+    void removeInstance(const InstanceID id)
+    {
+        const std::string& name = getScene()->getMeshInstance(id)->getName();
+
+        mScene->removeMeshInstance(id);
+        mInstanceMapertials.erase(id);
+        mInstanceIDs.erase(name);
+    }
+
+    void removeInstanceByName(const std::string& name)
+    {
+        const InstanceID id = mInstanceIDs[name];
+
+        mScene->removeMeshInstance(id);
+        mInstanceMapertials.erase(id);
+        mInstanceIDs.erase(name);
+    }
+
     InstanceID getInstanceIDByName(const std::string& name) const
     {
         if(auto it = mInstanceIDs.find(name); it != mInstanceIDs.end())

@@ -127,6 +127,7 @@ namespace Tempest
             {
                 ImGui::Checkbox("Dynamic", &entry.mDynamic);
                 ImGui::InputFloat("Mass", &entry.mMass);
+                ImGui::InputFloat("Restitution", &entry.mRestitution);
 
                 std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane"};
                 const std::string& activeCollider = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
@@ -145,6 +146,13 @@ namespace Tempest
                     }
                     ImGui::EndCombo();
                 }
+            }
+
+            if(ImGui::Button("Delete"))
+            {
+                level->removeInstanceByName(name);
+                mInstanceInfo.erase(id);
+                modified = true;
             }
         }
         ImGui::End();
@@ -166,13 +174,15 @@ namespace Tempest
     void InstanceWindow::setInstanceCollider(const InstanceID id,
                                              const BasicCollisionGeometry geom,
                                              const float mass,
-                                             const bool dynamic)
+                                             const bool dynamic,
+                                             const float restitution)
     {
         InstanceEntry& entry = mInstanceInfo[id];
         entry.mHasCollider = true;
         entry.mCollisionGeom = geom;
         entry.mDynamic = dynamic;
         entry.mMass = mass;
+        entry.mRestitution = restitution;
     }
 
 }
