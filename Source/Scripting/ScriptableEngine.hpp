@@ -62,6 +62,8 @@ namespace Tempest {
 
     LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, startInstanceFrame)
 
+    LUA_SCRIPT_HOOK_DECLARATION(TempestEngine, setInstanceLinearVelocity)
+
     void registerEngineLuaHooks(ScriptEngine *eng, TempestEngine *scene);
 
     void pushLuaStack(lua_State *L, const Controller&);

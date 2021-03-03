@@ -92,6 +92,11 @@ namespace Tempest
         inst->newFrame();
     }
 
+    void TempestEngine::setInstanceLinearVelocity(const InstanceID id, const float3& v)
+    {
+        mPhysicsEngine->setInstanceLinearVelocity(id, v);
+    }
+
     void TempestEngine::translateInstance(const InstanceID id, const float3& v)
     {
         mCurrentLevel->getScene()->translateInstance(id, v);

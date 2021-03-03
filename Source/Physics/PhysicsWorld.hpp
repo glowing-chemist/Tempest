@@ -93,6 +93,7 @@ public:
 
     void setInstancePosition(const InstanceID, const float3&);
     void translateInstance(const InstanceID, const float3&);
+    void setInstanceLinearVelocity(const InstanceID, const float3&);
 
 private:
 

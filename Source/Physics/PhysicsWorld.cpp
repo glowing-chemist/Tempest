@@ -244,9 +244,10 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
         btRigidBody* body = getRigidBody(id);
         if(body)
         {
+            btMotionState* state = body->getMotionState();
             btTransform &transform = body->getWorldTransform();
             transform.setOrigin({v.x, v.y, v.z});
-            body->setWorldTransform(transform);
+            state->setWorldTransform(transform);
 
             if (!body->isActive())
                 body->activate(true);
@@ -258,10 +259,22 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
     {
         btRigidBody* body = getRigidBody(id);
         if(body) {
+            btMotionState* state = body->getMotionState();
             btTransform &transform = body->getWorldTransform();
-            btVector3 origin = transform.getOrigin();
+            btVector3& origin = transform.getOrigin();
             transform.setOrigin({origin.x() + v.x, origin.y() + v.y, origin.z() + v.z});
-            body->setWorldTransform(transform);
+            state->setWorldTransform(transform);
+
+            if (!body->isActive())
+                body->activate(true);
+        }
+    }
+
+    void PhysicsWorld::setInstanceLinearVelocity(const InstanceID id, const float3& v)
+    {
+        btRigidBody* body = getRigidBody(id);
+        if(body) {
+            body->setLinearVelocity({v.x, v.y, v.z});
 
             if (!body->isActive())
                 body->activate(true);

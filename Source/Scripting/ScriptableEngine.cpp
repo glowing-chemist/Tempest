@@ -56,6 +56,8 @@ namespace Tempest
 
     LUA_SCRIPT_HOOK_DEFINITION(TempestEngine, startInstanceFrame)
 
+    LUA_SCRIPT_HOOK_DEFINITION(TempestEngine, setInstanceLinearVelocity)
+
     void registerEngineLuaHooks(ScriptEngine *scriptEngine, TempestEngine *engine)
     {
         CallablesRegistrar *registrar = scriptEngine->createCallablesRegistrar();
@@ -111,6 +113,8 @@ namespace Tempest
         LUA_REGISTER_HOOK(TempestEngine, getInstanceCenter, engine, InstanceID)
 
         LUA_REGISTER_HOOK(TempestEngine, startInstanceFrame, engine, InstanceID)
+
+        LUA_REGISTER_HOOK(TempestEngine, setInstanceLinearVelocity, engine, InstanceID, float3)
 
         scriptEngine->registerCallables(registrar);
     }

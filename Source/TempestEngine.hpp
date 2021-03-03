@@ -34,6 +34,7 @@ public:
     // must be called before updating transformation!!
     void startInstanceFrame(const InstanceID);
 
+    void setInstanceLinearVelocity(const InstanceID, const float3&);
     void translateInstance(const InstanceID, const float3&);
     float3 getInstancePosition(const InstanceID) const;
     void   setInstancePosition(const InstanceID, const float3&);
