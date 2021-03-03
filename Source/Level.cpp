@@ -293,7 +293,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         }
 
         if(mInstanceWindow)
-            mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType == PhysicsEntityType::DynamicRigid || entityType == PhysicsEntityType::Kinematic, restitution);
+            mInstanceWindow->setInstanceCollider(id, colliderType, mass, entityType, restitution);
     }
 
     if(entry.isMember("Scripts"))

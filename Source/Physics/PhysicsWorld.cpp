@@ -90,7 +90,10 @@ void PhysicsWorld::addObject(const InstanceID id,
     body->setUserIndex(id);
 
     if(type == PhysicsEntityType::Kinematic)
-        body->setActivationState(DISABLE_DEACTIVATION);
+    {
+        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        body->setActivationState( DISABLE_DEACTIVATION );
+    }
 
     if(collisionGeometry == BasicCollisionGeometry::Capsule)
         body->setAngularFactor({0.0f, 1.0f, 0.0f});
@@ -230,7 +233,7 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
     }
 
     outInertia = btVector3(0.0f, 0.0f, 0.0f);
-    if (entitytype == PhysicsEntityType::DynamicRigid || entitytype == PhysicsEntityType::Kinematic)
+    if (entitytype == PhysicsEntityType::DynamicRigid)
         shape->calculateLocalInertia(btScalar(mass), outInertia);
 
     return shape;

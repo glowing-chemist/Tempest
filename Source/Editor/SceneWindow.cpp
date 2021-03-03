@@ -250,7 +250,12 @@ namespace Tempest
                 {
                     Json::Value collider{};
                     collider["Mass"] = entry.mMass;
-                    collider["Type"] = entry.mDynamic ? "Dynamic" : "Static";
+                    if(entry.mColliderType == PhysicsEntityType::StaticRigid)
+                        collider["Type"] = "Static";
+                    else if(entry.mColliderType == PhysicsEntityType::DynamicRigid)
+                        collider["Type"] = "Dynamic";
+                    else
+                        collider["Type"] = "Kinematic";
                     std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane", "Mesh"};
                     collider["Geometry"] = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
                     collider["Restitution"] = entry.mRestitution;

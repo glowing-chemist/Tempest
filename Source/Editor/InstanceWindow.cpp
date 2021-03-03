@@ -125,9 +125,26 @@ namespace Tempest
             ImGui::Checkbox("Has collider", &entry.mHasCollider);
             if(entry.mHasCollider)
             {
-                ImGui::Checkbox("Dynamic", &entry.mDynamic);
                 ImGui::InputFloat("Mass", &entry.mMass);
                 ImGui::InputFloat("Restitution", &entry.mRestitution);
+
+                std::string physicsTypes[] = {"Dynamic", "Static", "Kinematic"};
+                const std::string& activeEntityType = physicsTypes[static_cast<uint32_t>(entry.mColliderType)];
+                if (ImGui::BeginCombo("Entity type", activeEntityType.c_str()))
+                {
+                    for (uint32_t n = 0; n < 3; n++)
+                    {
+                        const std::string& typeName = physicsTypes[n];
+                        bool is_selected = typeName == activeEntityType;
+                        if (ImGui::Selectable(typeName.c_str(), is_selected))
+                        {
+                            entry.mColliderType = static_cast<PhysicsEntityType>(n);
+                        }
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
 
                 std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane"};
                 const std::string& activeCollider = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
@@ -174,13 +191,13 @@ namespace Tempest
     void InstanceWindow::setInstanceCollider(const InstanceID id,
                                              const BasicCollisionGeometry geom,
                                              const float mass,
-                                             const bool dynamic,
+                                             const PhysicsEntityType type,
                                              const float restitution)
     {
         InstanceEntry& entry = mInstanceInfo[id];
         entry.mHasCollider = true;
         entry.mCollisionGeom = geom;
-        entry.mDynamic = dynamic;
+        entry.mColliderType = type;
         entry.mMass = mass;
         entry.mRestitution = restitution;
     }
