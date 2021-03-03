@@ -118,6 +118,7 @@ namespace Tempest
     void   TempestEngine::setInstanceRotation(const InstanceID id, const quat& rot)
     {
         mCurrentLevel->getScene()->getMeshInstance(id)->setRotation(rot);
+        mPhysicsEngine->setInstanceRotation(id, rot);
     }
 
     void   TempestEngine::setGraphicsInstancePosition(const InstanceID id, const float3& v)

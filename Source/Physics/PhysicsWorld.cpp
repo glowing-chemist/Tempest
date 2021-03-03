@@ -281,4 +281,20 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
         }
     }
 
+    void PhysicsWorld::setInstanceRotation(const InstanceID id, const quat& rot)
+    {
+        btRigidBody* body = getRigidBody(id);
+        if(body) {
+            btMotionState* state = body->getMotionState();
+            btTransform &transform = body->getWorldTransform();
+            btVector3& origin = transform.getOrigin();
+            transform.setRotation({rot.x, rot.y, rot.z, rot.w});
+            state->setWorldTransform(transform);
+
+            if (!body->isActive())
+                body->activate(true);
+        }
+    }
+
+
 }
