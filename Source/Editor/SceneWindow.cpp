@@ -176,6 +176,19 @@ namespace Tempest
                 if(entries.mMaterialFlags & MaterialType::AmbientOcclusion)
                     material["Occlusion"] = entries.mOcclusionPath;
 
+                uint32_t flagIndex = 0;
+                if(entries.mMaterialFlags & MaterialType::Transparent)
+                {
+                    material["Flags"].insert(flagIndex, "Transparent");
+                    ++flagIndex;
+                }
+
+                if(entries.mMaterialFlags & MaterialType::AlphaTested)
+                {
+                    material["Flags"].insert(flagIndex, "AlphaCutout");
+                    ++flagIndex;
+                }
+
                 materialsJson[name] = material;
             }
 

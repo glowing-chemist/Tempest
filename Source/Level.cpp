@@ -67,7 +67,7 @@ Level::Level(RenderEngine* eng,
              InstanceWindow* instanceWindow,
              SceneWindow* sceneWindow) :
         mName(name),
-        mWorkingDir(path.parent_path()),
+        mWorkingDir(path),
         mScene(new Scene(name)),
         mRenderEngine(eng),
         mPhysWorld{physWorld},
@@ -440,6 +440,20 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         matPaths.mAmbientOcclusionPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::AmbientOcclusion);
         matEntry.mOcclusionPath = path;
+    }
+
+    if(entry.isMember("Flags"))
+    {
+        const Json::Value& flags = entry["Flags"];
+        for(uint32_t flags_i = 0; flags_i < flags.size(); ++flags_i)
+        {
+            const std::string flag = flags[flags_i].asString();
+
+            if(flag == "AlphaCutout")
+                matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::AlphaTested);
+            else if(flag == "Transparent")
+                matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Transparent);
+        }
     }
 
     matEntry.mMaterialOffset = matPaths.mMaterialOffset;
