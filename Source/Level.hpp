@@ -184,7 +184,7 @@ public:
     void setInstanceMaterial(const InstanceID id, const uint32_t subMeshIndex, const std::string& n)
     {
         std::vector<std::string>& materials = mInstanceMapertials[id];
-        if(subMeshIndex + 1 < materials.size())
+        if(subMeshIndex + 1 > materials.size())
             materials.resize(subMeshIndex + 1);
         materials[subMeshIndex] = n;
         MeshInstance* instance = mScene->getMeshInstance(id);

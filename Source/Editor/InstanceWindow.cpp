@@ -97,6 +97,7 @@ namespace Tempest
                         if (ImGui::Selectable(matName.c_str(), is_selected))
                         {
                             activeMaterial = matName;
+                            level->setInstanceMaterial(id, i, activeMaterial);
                         }
                         if (is_selected)
                             ImGui::SetItemDefaultFocus();
@@ -104,7 +105,6 @@ namespace Tempest
                     ImGui::EndCombo();
                 }
                 ImGui::PopID();
-                level->setInstanceMaterial(id, i, activeMaterial);
             }
 
             ImGui::Checkbox("Has Script", &entry.mHasScript);

@@ -210,7 +210,6 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
 
         for(uint32_t i = 0; i < materialEntry.size(); ++i)
         {
-            materials.push_back(materialEntry[i].asString());
             setInstanceMaterial(id, i, materialEntry[i].asString());
         }
 
@@ -637,7 +636,9 @@ void Level::addMeshInstance(const std::string& name, const SceneID meshID, const
                                                   matEntry.mMaterialFlags,
                                                   name);
 
-    mInstanceMapertials[id].push_back(materialsName);
+    const uint32_t subMeshCount = mScene->getMeshInstance(id)->getSubMeshCount();
+    for(uint32_t i = 0; i < subMeshCount; ++i)
+        mInstanceMapertials[id].push_back(materialsName);
     mInstanceIDs[name] = id;
 }
 
