@@ -55,10 +55,16 @@ namespace Tempest
 
     private:
 
-    std::filesystem::path mWorkingDir;
-    std::vector<std::string> mScriptNames;
+        bool renderDuplicateWindow(Level* level);
 
-    std::unordered_map<InstanceID, InstanceEntry> mInstanceInfo;
+        InstanceID mInstanceToDuplicate;
+        char mDuplicateNameBuffer[64];
+        bool mShowDuplicateWindow;
+
+        std::filesystem::path mWorkingDir;
+        std::vector<std::string> mScriptNames;
+
+        std::unordered_map<InstanceID, InstanceEntry> mInstanceInfo;
 
     };
 }

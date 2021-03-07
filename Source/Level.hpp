@@ -176,7 +176,7 @@ public:
     }
 
     void addMeshFromFile(const std::filesystem::path& path, const MeshType);
-    void addMeshInstance(const std::string& name, const SceneID, const std::string& materialsName, const float3& pos,
+    InstanceID addMeshInstance(const std::string& name, const SceneID, const std::string& materialsName, const float3& pos,
                          const quat& rotation, const float3& scale);
     void addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode);
     void addMaterialFromFile(const std::filesystem::path&);

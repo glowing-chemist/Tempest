@@ -26,6 +26,7 @@ namespace Tempest
         void run();
 
         void text_callback(GLFWwindow* window, unsigned int codePoint);
+        void mouseScroll_callback(GLFWwindow*, double, double yoffset);
 
     private:
 
@@ -49,6 +50,7 @@ namespace Tempest
 
         Camera mEditorCamera;
         double mMousePosition[2];
+        std::atomic<double> mMouseScrollAmount;
     };
 }
 

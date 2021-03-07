@@ -7,6 +7,8 @@
 namespace Tempest
 {
     InstanceWindow::InstanceWindow(const std::filesystem::path& dir) :
+            mShowDuplicateWindow(false),
+            mInstanceToDuplicate(kInvalidInstanceID),
             mWorkingDir{dir}
     {
         // Find all script files.
@@ -21,6 +23,8 @@ namespace Tempest
                 }
             }
         }
+
+        std::memset(mDuplicateNameBuffer, 0, 64);
     }
 
     bool InstanceWindow::drawInstanceWindow(Level* level, const InstanceID id)
@@ -171,6 +175,12 @@ namespace Tempest
                 }
             }
 
+            if(ImGui::Button("Duplicate"))
+            {
+                mShowDuplicateWindow = true;
+                mInstanceToDuplicate = id;
+            }
+
             if(ImGui::Button("Delete"))
             {
                 level->removeInstanceByName(name);
@@ -179,6 +189,9 @@ namespace Tempest
             }
         }
         ImGui::End();
+
+        if(mShowDuplicateWindow)
+            modified = modified || renderDuplicateWindow(level);
 
         return modified;
     }
@@ -206,6 +219,45 @@ namespace Tempest
         entry.mColliderType = type;
         entry.mMass = mass;
         entry.mRestitution = restitution;
+    }
+
+    bool InstanceWindow::renderDuplicateWindow(Level* level)
+    {
+        bool sceneModified = false;
+
+        if(ImGui::Begin("Duplicate"))
+        {
+            ImGui::InputText("Duplicate name", mDuplicateNameBuffer, 64);
+
+            if(ImGui::Button("Duplicate"))
+            {
+                Scene* scene = level->getScene();
+                MeshInstance* inst = scene->getMeshInstance(mInstanceToDuplicate);
+                if(inst != nullptr)
+                {
+                    const float3 position = inst->getPosition();
+                    const float3 scale = inst->getScale();
+                    const quat rotation = inst->getRotation();
+                    const SceneID assetID = inst->getSceneID();
+                    const std::string material = level->getMaterialName(mInstanceToDuplicate, 0);
+                    const uint32_t subMeshCount = inst->getSubMeshCount();
+
+                    const InstanceID id = level->addMeshInstance(mDuplicateNameBuffer, assetID, material, position, rotation, scale);
+                    mInstanceInfo[id] = mInstanceInfo[mInstanceToDuplicate];
+
+                    for(uint32_t i = 0; i < subMeshCount; ++i)
+                    {
+                        level->setInstanceMaterial(id, i, level->getMaterialName(mInstanceToDuplicate, i));
+                    }
+                }
+                mShowDuplicateWindow = false;
+                std::memset(mDuplicateNameBuffer, 0, 64);
+                sceneModified = true;
+            }
+        }
+        ImGui::End();
+
+        return sceneModified;
     }
 
 }

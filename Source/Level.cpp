@@ -622,7 +622,7 @@ void Level::addMeshFromFile(const std::filesystem::path& path, const MeshType ty
     mAssetIDs[path.stem().string()] = id;
 }
 
-void Level::addMeshInstance(const std::string& name, const SceneID meshID, const std::string& materialsName, const float3& pos,
+InstanceID Level::addMeshInstance(const std::string& name, const SceneID meshID, const std::string& materialsName, const float3& pos,
                          const quat& rotation, const float3& scale)
 {
     const MaterialEntry& matEntry = mMaterials[materialsName];
@@ -640,6 +640,8 @@ void Level::addMeshInstance(const std::string& name, const SceneID meshID, const
     for(uint32_t i = 0; i < subMeshCount; ++i)
         mInstanceMapertials[id].push_back(materialsName);
     mInstanceIDs[name] = id;
+
+    return id;
 }
 
 void Level::addMaterialFromFile(const std::filesystem::path& path)

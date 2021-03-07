@@ -25,6 +25,13 @@ namespace Tempest
     {
         glfwSetWindowUserPointer(mWindow, this);
 
+        auto curor_callback = [](GLFWwindow* window, double, double y)
+        {
+            Editor* editor = static_cast<Editor*>(glfwGetWindowUserPointer(window));
+            editor->mouseScroll_callback(window, 0.0, y);
+        };
+        glfwSetScrollCallback(mWindow, curor_callback);
+
         auto text_callback = [](GLFWwindow* window, unsigned int codePoint)
         {
             Editor* editor = static_cast<Editor*>(glfwGetWindowUserPointer(window));
@@ -70,14 +77,14 @@ namespace Tempest
 
         while(!glfwWindowShouldClose(mWindow))
         {
-            ImGui::NewFrame();
-            ImGuizmo::BeginFrame();
-
             const auto currentTime = std::chrono::system_clock::now();
             std::chrono::microseconds frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime);
             frameStartTime = currentTime;
 
             pumpInputQueue();
+
+            ImGui::NewFrame();
+            ImGuizmo::BeginFrame();
 
             if(!mFirstFrame)
                 mRenderEngine->startFrame(frameDelta);
@@ -123,6 +130,8 @@ namespace Tempest
         }
 
         memcpy(&io.MouseDown[0], &mousePressed[0], sizeof(bool) * 5);
+        const double mouseDiff = mMouseScrollAmount.exchange(0.0);
+        io.MouseWheel = static_cast<float>(mouseDiff);
 
         if(mousePressed[1])
         {
@@ -145,6 +154,11 @@ namespace Tempest
     void Editor::text_callback(GLFWwindow*, unsigned int codePoint)
     {
         ImGui::GetIO().AddInputCharacter(codePoint);
+    }
+
+    void Editor::mouseScroll_callback(GLFWwindow*, double, double yoffset)
+    {
+        mMouseScrollAmount.store(yoffset);
     }
 
     void Editor::initGraphicsState()
