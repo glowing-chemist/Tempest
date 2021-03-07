@@ -164,12 +164,15 @@ public:
         return mMaterials;
     }
 
-    const std::string& getMaterialName(const InstanceID id) const
+    std::string getMaterialName(const InstanceID id, const uint32_t subMeshIndex) const
     {
         if(auto it = mInstanceMapertials.find(id); it != mInstanceMapertials.end())
-            return it->second;
+        {
+            BELL_ASSERT(it->second.size() > subMeshIndex, "Index out of bounds")
+            return it->second[subMeshIndex];
+        }
         else
-            return nullptr;
+            return "";
     }
 
     void addMeshFromFile(const std::filesystem::path& path, const MeshType);
@@ -178,13 +181,16 @@ public:
     void addCamera(const std::string& name, const float3& pos, const float3& dir, const CameraMode mode);
     void addMaterialFromFile(const std::filesystem::path&);
 
-    void setInstanceMaterial(const InstanceID id, const std::string& n)
+    void setInstanceMaterial(const InstanceID id, const uint32_t subMeshIndex, const std::string& n)
     {
-        mInstanceMapertials[id] = n;
+        std::vector<std::string>& materials = mInstanceMapertials[id];
+        if(subMeshIndex + 1 < materials.size())
+            materials.resize(subMeshIndex + 1);
+        materials[subMeshIndex] = n;
         MeshInstance* instance = mScene->getMeshInstance(id);
         MaterialEntry entry = mMaterials[n];
-        instance->setMaterialIndex(entry.mMaterialOffset);
-        instance->setMaterialFlags(entry.mMaterialFlags);
+        instance->setMaterialIndex(subMeshIndex, entry.mMaterialOffset);
+        instance->setMaterialFlags(subMeshIndex, entry.mMaterialFlags);
     }
 
     const std::array<std::string, 6>& getSkybox() const
@@ -210,7 +216,7 @@ private:
     std::unordered_map<SceneID, std::string> mAssetNames;
     std::unordered_map<SceneID, std::filesystem::path> mIDToPath;
     std::unordered_map<std::string, InstanceID> mInstanceIDs;
-    std::unordered_map<InstanceID, std::string> mInstanceMapertials;
+    std::unordered_map<InstanceID, std::vector<std::string>> mInstanceMapertials;
     std::unordered_map<std::string, MaterialEntry> mMaterials;
 
     std::unique_ptr<Scene> mScene;

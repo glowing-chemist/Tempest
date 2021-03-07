@@ -129,21 +129,15 @@ void Level::addMesh(const std::string& name, const Json::Value& entry)
     const std::string path = entry["Path"].asString();
     const std::string type = entry["Dynamism"].asString();
 
-    const std::vector<SceneID> ids = mScene->loadFile((mWorkingDir / path).string(), type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine, false);
-    for(uint32_t i = 0; i < ids.size(); ++i)
-    {
-        const SceneID id = ids[i];
-        if(ids.size() > 1)
-            mAssetIDs[name + std::to_string(i)] = id;
-        else
-            mAssetIDs[name] = id;
+    const SceneID id = mScene->loadFile((mWorkingDir / path).string(), type == "Dynamic" ? MeshType::Dynamic : MeshType::Static, mRenderEngine, false);
 
-        mIDToPath[id] = path;
-        mAssetNames[id] = name;
+    mAssetIDs[name] = id;
 
-        if(mSceneWindow)
-            mSceneWindow->setAssetDynamic(id, type == "Dynamic");
-    }
+    mIDToPath[id] = path;
+    mAssetNames[id] = name;
+
+    if(mSceneWindow)
+        mSceneWindow->setAssetDynamic(id, type == "Dynamic");
 }
 
 
@@ -191,7 +185,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
     BELL_ASSERT(entry.isMember("Material"), "Material is a required field")
     if(entry.isMember("Material"))
     {
-        const std::string materialName = entry["Material"].asString();
+        const std::string materialName = entry["Material"][0].asString();
         BELL_ASSERT(mMaterials.find(materialName) != mMaterials.end(), "Using unspecified material")
         const MaterialEntry material = mMaterials[materialName];
         materialOffset = material.mMaterialOffset;
@@ -210,7 +204,17 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
                                                   name);
 
     mInstanceIDs[name] = id;
-    mInstanceMapertials[id] = entry["Material"].asString();
+    {
+        const Json::Value& materialEntry = entry["Material"];
+        std::vector<std::string>& materials = mInstanceMapertials[id];
+
+        for(uint32_t i = 0; i < materialEntry.size(); ++i)
+        {
+            materials.push_back(materialEntry[i].asString());
+            setInstanceMaterial(id, i, materialEntry[i].asString());
+        }
+
+    }
 
     // Now check for collision geometry
     if(entry.isMember("Collider"))
@@ -633,7 +637,7 @@ void Level::addMeshInstance(const std::string& name, const SceneID meshID, const
                                                   matEntry.mMaterialFlags,
                                                   name);
 
-    mInstanceMapertials[id] = materialsName;
+    mInstanceMapertials[id].push_back(materialsName);
     mInstanceIDs[name] = id;
 }
 

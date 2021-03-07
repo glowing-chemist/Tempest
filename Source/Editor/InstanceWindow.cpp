@@ -83,23 +83,29 @@ namespace Tempest
             }
 
             std::vector<std::string> materials = level->getMaterials();
-            std::string activeMaterial = level->getMaterialName(id);
-            if (ImGui::BeginCombo("Material", activeMaterial.c_str()))
+            uint32_t subMeshCount = instance->getSubMeshCount();
+            for(uint32_t i = 0; i < subMeshCount; ++i)
             {
-                for (uint32_t n = 0; n < materials.size(); n++)
+                ImGui::PushID(i);
+                std::string activeMaterial = level->getMaterialName(id, i);
+                if (ImGui::BeginCombo("Material", activeMaterial.c_str()))
                 {
-                    const std::string& matName = materials[n];
-                    bool is_selected = matName == activeMaterial;
-                    if (ImGui::Selectable(matName.c_str(), is_selected))
+                    for (uint32_t n = 0; n < materials.size(); n++)
                     {
-                        activeMaterial = matName;
+                        const std::string& matName = materials[n];
+                        bool is_selected = matName == activeMaterial;
+                        if (ImGui::Selectable(matName.c_str(), is_selected))
+                        {
+                            activeMaterial = matName;
+                        }
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
                     }
-                    if (is_selected)
-                        ImGui::SetItemDefaultFocus();
+                    ImGui::EndCombo();
                 }
-                ImGui::EndCombo();
+                ImGui::PopID();
+                level->setInstanceMaterial(id, i, activeMaterial);
             }
-            level->setInstanceMaterial(id, activeMaterial);
 
             ImGui::Checkbox("Has Script", &entry.mHasScript);
             if(entry.mHasScript)

@@ -15,8 +15,6 @@ namespace Tempest {
     {
         Tempest::CallablesRegistrar *registrar = scriptEngine->createCallablesRegistrar();
 
-        LUA_REGISTER_HOOK(Scene, testPrint, scene)
-
         scriptEngine->registerCallables(registrar);
     }
 

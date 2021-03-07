@@ -98,3 +98,5 @@ target_link_libraries(TEMPEST BELL jsoncpp_static ${BULLET})
 
 add_executable(TEMPEST_EDITOR ${ENGINE_SOURCE} Source/Editor/main.cpp ${TEMPEST_EDITOR_SOURCE} ${LUA_SOURCE})
 target_link_libraries(TEMPEST_EDITOR BELL jsoncpp_static ${BULLET})
+
+add_dependencies(TEMPEST_EDITOR TEMPEST)

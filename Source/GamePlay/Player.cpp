@@ -28,13 +28,18 @@ namespace Tempest {
         const AABB &aabb = mesh->getAABB();
         mCentralHeight = aabb.getCentralPoint().y;
 
-        const std::vector<StaticMesh::Bone> &skeleton = mesh->getSkeleton();
-        mHitBoxes.reserve(skeleton.size());
-        for (const auto &bone : skeleton) {
-            HitBox box{};
-            box.mOrientatedBoundingBox = bone.mOBB;
-            box.mVelocity = float3{0.0f, 0.0f, 0.0f};
-            mHitBoxes.push_back(box);
+        const std::vector<SubMesh>& submeshes = mesh->getSubMeshes();
+        for(const auto& subMesh : submeshes)
+        {
+            const std::vector<Bone> &skeleton = subMesh.mSkeleton;
+            mHitBoxes.reserve(skeleton.size());
+            for (const auto &bone : skeleton)
+            {
+                HitBox box{};
+                box.mOrientatedBoundingBox = bone.mOBB;
+                box.mVelocity = float3{0.0f, 0.0f, 0.0f};
+                mHitBoxes.push_back(box);
+            }
         }
 
     }
@@ -123,20 +128,41 @@ namespace Tempest {
 
         const std::vector<RenderEngine::SkeletalAnimationEntry> &activeAnims = eng->getActiveSkeletalAnimations();
         bool foundAnim = false;
-        const std::vector<StaticMesh::Bone> &skeleton = instance->getMesh()->getSkeleton();
-        for (const auto &anim : activeAnims) {
-            if (anim.mMesh == mID) {
-                foundAnim = true;
+        const std::vector<SubMesh>& subMeshes = instance->getMesh()->getSubMeshes();
+        for(const auto& subMesh : subMeshes)
+        {
+            const std::vector<Bone> &skeleton = subMesh.mSkeleton;
+            for (const auto &anim : activeAnims)
+            {
+                if (anim.mMesh == mID) {
+                    foundAnim = true;
 
-                SkeletalAnimation &animation = instance->getMesh()->getSkeletalAnimation(anim.mName);
-                std::vector<float4x4> boneTransforms = animation.calculateBoneMatracies(*instance->getMesh(),
-                                                                                        anim.mTick);
+                    SkeletalAnimation &animation = instance->getMesh()->getSkeletalAnimation(anim.mName);
+                    std::vector<float4x4> boneTransforms = animation.calculateBoneMatracies(*instance->getMesh(),
+                                                                                            anim.mTick);
 
-                for (uint32_t i = 0; i < skeleton.size(); ++i) {
-                    const StaticMesh::Bone &bone = skeleton[i];
-                    const float4x4 &transform = boneTransforms[i];
+                    for (uint32_t i = 0; i < skeleton.size(); ++i) {
+                        const Bone &bone = skeleton[i];
+                        const float4x4 &transform = boneTransforms[i];
 
-                    const float4x4 OBBTransformation = instance->getTransMatrix() * transform;
+                        const float4x4 OBBTransformation = instance->getTransMatrix() * transform;
+                        const OBB transformedOBB = bone.mOBB * OBBTransformation;
+
+                        HitBox &previousHitBox = mHitBoxes[i];
+                        previousHitBox.mVelocity =
+                                transformedOBB.getCentralPoint() - previousHitBox.mOrientatedBoundingBox.getCentralPoint();
+                        previousHitBox.mOrientatedBoundingBox = transformedOBB;
+                    }
+                }
+            }
+
+            if (!foundAnim)
+            {
+                for (uint32_t i = 0; i < skeleton.size(); ++i)
+                {
+                    const Bone &bone = skeleton[i];
+
+                    const float4x4 OBBTransformation = instance->getTransMatrix();
                     const OBB transformedOBB = bone.mOBB * OBBTransformation;
 
                     HitBox &previousHitBox = mHitBoxes[i];
@@ -144,20 +170,6 @@ namespace Tempest {
                             transformedOBB.getCentralPoint() - previousHitBox.mOrientatedBoundingBox.getCentralPoint();
                     previousHitBox.mOrientatedBoundingBox = transformedOBB;
                 }
-            }
-        }
-
-        if (!foundAnim) {
-            for (uint32_t i = 0; i < skeleton.size(); ++i) {
-                const StaticMesh::Bone &bone = skeleton[i];
-
-                const float4x4 OBBTransformation = instance->getTransMatrix();
-                const OBB transformedOBB = bone.mOBB * OBBTransformation;
-
-                HitBox &previousHitBox = mHitBoxes[i];
-                previousHitBox.mVelocity =
-                        transformedOBB.getCentralPoint() - previousHitBox.mOrientatedBoundingBox.getCentralPoint();
-                previousHitBox.mOrientatedBoundingBox = transformedOBB;
             }
         }
     }

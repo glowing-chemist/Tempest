@@ -249,7 +249,11 @@ namespace Tempest
                 instanceJSon["Scale"].insert(1, scale.y);
                 instanceJSon["Scale"].insert(2, scale.z);
 
-                instanceJSon["Material"] = mCurrentLevel->getMaterialName(id);
+                const uint32_t subMeshCount = instance->getSubMeshCount();
+                for(uint32_t i = 0; i < subMeshCount; ++i)
+                {
+                    instanceJSon["Material"].insert(i, mCurrentLevel->getMaterialName(id, i));
+                }
 
                 if(entry.mHasScript)
                 {
