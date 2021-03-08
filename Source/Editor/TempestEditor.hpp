@@ -8,6 +8,7 @@
 
 struct GLFWwindow;
 class RenderEngine;
+class InstanceIDTechnique;
 
 namespace Tempest
 {
@@ -47,6 +48,9 @@ namespace Tempest
         ScriptEngine* mScriptEngine;
         SceneWindow* mSceneWindow;
         InstanceWindow* mInstanceWindow;
+
+        InstanceIDTechnique* mInstancePicker;
+        uint64_t mSelectedInstance;
 
         Camera mEditorCamera;
         double mMousePosition[2];

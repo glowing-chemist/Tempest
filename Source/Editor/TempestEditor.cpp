@@ -6,6 +6,7 @@
 #include "InstanceWindow.hpp"
 #include "../Level.hpp"
 #include "ImGuizmo.h"
+#include "Engine/InstanceIDTechnique.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -15,6 +16,8 @@ namespace Tempest
     Editor::Editor(GLFWwindow *window, std::filesystem::path &directory) :
         mWindow{window},
         mRootDir(directory),
+        mInstancePicker(nullptr),
+        mSelectedInstance(kInvalidInstanceID),
         mEditorCamera({0.0f, 0.0f, 0.0f},
                       {1.0f, 0.0f, 0.0f},
                       1920.0f / 1080.0f,
@@ -81,6 +84,9 @@ namespace Tempest
             std::chrono::microseconds frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime);
             frameStartTime = currentTime;
 
+            if(!mInstancePicker)
+                mInstancePicker = static_cast<InstanceIDTechnique*>(mRenderEngine->getRegisteredTechnique(PassType::InstanceID));
+
             pumpInputQueue();
 
             ImGui::NewFrame();
@@ -91,9 +97,8 @@ namespace Tempest
 
             drawMenuBar();
             bool refitNeeded = mSceneWindow->renderUI();
-            const std::vector<InstanceID>& selected = mSceneWindow->getSelected();
-            for(const auto id : selected)
-                refitNeeded = refitNeeded || mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, id);
+
+            refitNeeded = refitNeeded || mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, mSelectedInstance);
 
             if(refitNeeded)
             {
@@ -121,12 +126,22 @@ namespace Tempest
         io.MousePos = ImVec2{static_cast<float>(mMousePosition[0]), static_cast<float>(mMousePosition[1])};
         const float2 cursorDelta = {mMousePosition[0] - prevMousPosition.x, mMousePosition[1] - prevMousPosition.y};
 
+        if(mInstancePicker)
+            mInstancePicker->setMousePosition({io.MousePos.x, io.MousePos.y});
+
         bool mousePressed[5];
         for(uint32_t i = 0; i < 5; ++i)
         {
             const auto pressed = glfwGetMouseButton(mWindow, i);
 
             mousePressed[i] = pressed == GLFW_PRESS;
+        }
+
+        if(mInstancePicker && mousePressed[0] && !io.WantCaptureMouse)
+        {
+            mSelectedInstance = mInstancePicker->getCurrentlySelectedInstanceID();
+            if(mSelectedInstance == 0xFFFF)
+                mSelectedInstance = kInvalidInstanceID;
         }
 
         memcpy(&io.MouseDown[0], &mousePressed[0], sizeof(bool) * 5);
@@ -137,14 +152,18 @@ namespace Tempest
         {
             Camera& currentCam = *mSceneWindow->getCurrentCamera();
 
+            float speedModifier = 1.0f;
+            if(glfwGetKey(mWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                speedModifier = 5.0f;
+
             if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
-                currentCam.moveForward(0.5f);
+                currentCam.moveForward(0.5f * speedModifier);
             if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
-                currentCam.moveBackward(0.5f);
+                currentCam.moveBackward(0.5f * speedModifier);
             if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
-                currentCam.moveLeft(0.5f);
+                currentCam.moveLeft(0.5f * speedModifier);
             if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
-                currentCam.moveRight(0.5f);
+                currentCam.moveRight(0.5f * speedModifier);
 
             currentCam.rotatePitch(cursorDelta.y);
             currentCam.rotateWorldUp(-cursorDelta.x);
@@ -164,19 +183,20 @@ namespace Tempest
     void Editor::initGraphicsState()
     {
         mRenderEngine->registerPass(PassType::DepthPre);
+        mRenderEngine->registerPass(PassType::InstanceID);
         //mRenderEngine->registerPass(PassType::Shadow);
         mRenderEngine->registerPass(PassType::GBufferPreDepth);
         mRenderEngine->registerPass(PassType::DeferredPBRIBL);
         mRenderEngine->registerPass(PassType::DFGGeneration);
         mRenderEngine->registerPass(PassType::Skybox);
         mRenderEngine->registerPass(PassType::ConvolveSkybox);
-        mRenderEngine->registerPass(PassType::Composite);
         mRenderEngine->registerPass(PassType::Animation);
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         mRenderEngine->registerPass(PassType::DebugAABB);
         mRenderEngine->registerPass(PassType::Overlay);
+        mRenderEngine->registerPass(PassType::Composite);
     }
 
 

@@ -29,6 +29,9 @@ namespace Tempest
 
     bool InstanceWindow::drawInstanceWindow(Level* level, const InstanceID id)
     {
+        if(id == kInvalidInstanceID)
+            return false;
+
         Scene* scene = level->getScene();
         MeshInstance* instance = scene->getMeshInstance(id);
         std::string name = instance->getName();

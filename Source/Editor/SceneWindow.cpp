@@ -50,14 +50,11 @@ namespace Tempest
 
                 if(ImGui::TreeNode("Instances"))
                 {
-                    mSelected.clear();
-
                     const std::unordered_map<std::string, InstanceID>& instances = mCurrentLevel->getInstances();
                     for(const auto& [name, id] : instances)
                     {
                         if(ImGui::TreeNode(name.c_str()))
                         {
-                            mSelected.push_back(id);
                             ImGui::TreePop();
                         }
                     }
@@ -135,9 +132,8 @@ namespace Tempest
                     if(ImGui::Button("New camera"))
                         mShowAddCameraWindow = true;
                 }
-
-                ImGui::End();
             }
+            ImGui::End();
         }
 
         bool changedScene = false;
@@ -175,6 +171,16 @@ namespace Tempest
                     material["Emissive"] = entries.mEmissivePath;
                 if(entries.mMaterialFlags & MaterialType::AmbientOcclusion)
                     material["Occlusion"] = entries.mOcclusionPath;
+                if(entries.mMaterialFlags & MaterialType::Specular)
+                    material["Specular"] = entries.mMetalnessPath;
+                if(entries.mMaterialFlags & MaterialType::Gloss)
+                    material["Gloss"] = entries.mRoughnessPath;
+                if(entries.mMaterialFlags & MaterialType::CombinedSpecularGloss)
+                    material["SpecularGloss"] = entries.mMetalnessPath;
+                if(entries.mMaterialFlags & MaterialType::Diffuse)
+                    material["Diffuse"] = entries.mAlbedoPath;
+
+
 
                 uint32_t flagIndex = 0;
                 if(entries.mMaterialFlags & MaterialType::Transparent)

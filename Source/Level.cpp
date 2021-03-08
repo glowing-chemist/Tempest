@@ -397,6 +397,30 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         matEntry.mAlbedoPath = path;
     }
 
+    if(entry.isMember("Diffuse"))
+    {
+        const std::string path = entry["Diffuse"].asString();
+        matPaths.mAlbedoorDiffusePath = (mWorkingDir / path).string();
+        matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Diffuse);
+        matEntry.mAlbedoPath = path;
+    }
+
+    if(entry.isMember("Specular"))
+    {
+        const std::string path = entry["Specular"].asString();
+        matPaths.mMetalnessOrSpecularPath = (mWorkingDir / path).string();
+        matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Specular);
+        matEntry.mMetalnessPath = path;
+    }
+
+    if(entry.isMember("SpecularGloss"))
+    {
+        const std::string path = entry["SpecularGloss"].asString();
+        matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
+        matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::CombinedSpecularGloss);
+        matEntry.mMetalnessPath = path;
+    }
+
     if(entry.isMember("Normal"))
     {
         const std::string path = entry["Normal"].asString();
@@ -410,6 +434,14 @@ void Level::addMaterial(const std::string &name, const Json::Value &entry)
         const std::string path = entry["Roughness"].asString();
         matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
         matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Roughness);
+        matEntry.mRoughnessPath = path;
+    }
+
+    if(entry.isMember("Gloss"))
+    {
+        const std::string path = entry["Gloss"].asString();
+        matPaths.mRoughnessOrGlossPath = (mWorkingDir / path).string();
+        matPaths.mMaterialTypes |= static_cast<uint32_t>(MaterialType::Gloss);
         matEntry.mRoughnessPath = path;
     }
 

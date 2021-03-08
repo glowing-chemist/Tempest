@@ -22,11 +22,6 @@ namespace Tempest
 
         void exportSceneToFile(const InstanceWindow*);
 
-        const std::vector<InstanceID>& getSelected() const
-        {
-            return mSelected;
-        }
-
         void setAssetDynamic(const SceneID id, const bool d)
         {
             mAssetDynamism[id] = d;
@@ -55,7 +50,6 @@ namespace Tempest
         std::vector<std::pair<std::string, Camera*>> mCameras;
         bool mShowAddCameraWindow = false;
 
-        std::vector<InstanceID> mSelected;
         std::unordered_map<SceneID, bool> mAssetDynamism;
         Level* mCurrentLevel;
 
