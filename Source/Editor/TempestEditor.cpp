@@ -139,9 +139,22 @@ namespace Tempest
 
         if(mInstancePicker && mousePressed[0] && !io.WantCaptureMouse)
         {
+            InstanceID oldInstanceID = mSelectedInstance;
             mSelectedInstance = mInstancePicker->getCurrentlySelectedInstanceID();
             if(mSelectedInstance == 0xFFFF)
                 mSelectedInstance = kInvalidInstanceID;
+
+            if(mSelectedInstance != kInvalidInstanceID)
+            {
+                MeshInstance* inst = mCurrentOpenLevel->getScene()->getMeshInstance(mSelectedInstance);
+                inst->setInstanceFlags(InstanceFlags::Draw | InstanceFlags::DrawAABB);
+            }
+
+            if(oldInstanceID != mSelectedInstance && oldInstanceID != kInvalidInstanceID)
+            {
+                MeshInstance *inst = mCurrentOpenLevel->getScene()->getMeshInstance(oldInstanceID);
+                inst->setInstanceFlags(InstanceFlags::Draw);
+            }
         }
 
         memcpy(&io.MouseDown[0], &mousePressed[0], sizeof(bool) * 5);
