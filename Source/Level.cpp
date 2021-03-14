@@ -291,7 +291,7 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         {
             const StaticMesh* mesh = mScene->getMesh(assetID);
             const AABB aabb = mesh->getAABB();
-            const float3 center = aabb.getCentralPoint();
+            const float3 center = scale * float3(aabb.getCentralPoint());
             mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass, restitution);
         }
 
