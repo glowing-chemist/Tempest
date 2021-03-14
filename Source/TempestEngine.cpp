@@ -280,8 +280,8 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
+        mRenderEngine->registerPass(PassType::SSAO);
         //eng->registerPass(PassType::TAA);
-        //eng->registerPass(PassType::SSAO);
 #ifndef NDEBUG
         mRenderEngine->registerPass(PassType::DebugAABB);
 #endif

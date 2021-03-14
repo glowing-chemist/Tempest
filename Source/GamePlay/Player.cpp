@@ -26,7 +26,7 @@ namespace Tempest {
         StaticMesh *mesh = inst->getMesh();
 
         const AABB &aabb = mesh->getAABB();
-        mCentralHeight = aabb.getCentralPoint().y;
+        mCentralHeight = aabb.getCentralPoint().y * inst->getScale().y;
 
         const std::vector<SubMesh>& submeshes = mesh->getSubMeshes();
         for(const auto& subMesh : submeshes)
