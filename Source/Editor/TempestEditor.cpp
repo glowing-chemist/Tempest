@@ -4,9 +4,12 @@
 #include "ScriptEngine.hpp"
 #include "SceneWindow.hpp"
 #include "InstanceWindow.hpp"
+#include "GraphicsSettingsWindow.hpp"
 #include "../Level.hpp"
 #include "ImGuizmo.h"
 #include "Engine/InstanceIDTechnique.hpp"
+#include "Engine/SSAOTechnique.hpp"
+#include "Engine/CompositeTechnique.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -49,6 +52,7 @@ namespace Tempest
         mScriptEngine = new ScriptEngine();
         mSceneWindow = new SceneWindow(&mEditorCamera);
         mInstanceWindow = new InstanceWindow(mRootDir);
+        mGraphicsSettingsWindow = new GraphicsSettingsWindow();
 
         initGraphicsState();
 
@@ -85,7 +89,12 @@ namespace Tempest
             frameStartTime = currentTime;
 
             if(!mInstancePicker)
-                mInstancePicker = static_cast<InstanceIDTechnique*>(mRenderEngine->getRegisteredTechnique(PassType::InstanceID));
+            {
+                mInstancePicker = static_cast<InstanceIDTechnique *>(mRenderEngine->getRegisteredTechnique(PassType::InstanceID));
+                SSAOTechnique* ssao = static_cast<SSAOTechnique*>(mRenderEngine->getRegisteredTechnique(PassType::SSAO));
+                CompositeTechnique* comp = static_cast<CompositeTechnique*>(mRenderEngine->getRegisteredTechnique(PassType::Composite));
+                mGraphicsSettingsWindow->initialize(ssao, comp);
+            }
 
             pumpInputQueue();
 
@@ -99,6 +108,9 @@ namespace Tempest
             bool refitNeeded = mSceneWindow->renderUI();
 
             refitNeeded = refitNeeded || mInstanceWindow->drawInstanceWindow(mCurrentOpenLevel, mSelectedInstance);
+
+            if(mRenderGraphicsSettingsWindow)
+                mGraphicsSettingsWindow->renderUI();
 
             if(refitNeeded)
             {
@@ -207,6 +219,7 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
+        mRenderEngine->registerPass(PassType::SSAO);
         mRenderEngine->registerPass(PassType::DebugAABB);
         mRenderEngine->registerPass(PassType::Overlay);
         mRenderEngine->registerPass(PassType::Composite);
@@ -252,6 +265,13 @@ namespace Tempest
                 std::string cmd = "Tempest.exe " + mRootDir.string();
                 system(cmd.c_str());
             }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Layout"))
+        {
+            ImGui::Checkbox("Show graphics Settings", &mRenderGraphicsSettingsWindow);
 
             ImGui::EndMenu();
         }

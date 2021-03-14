@@ -9,6 +9,7 @@
 struct GLFWwindow;
 class RenderEngine;
 class InstanceIDTechnique;
+class GraphicsSettingsWindow;
 
 namespace Tempest
 {
@@ -48,6 +49,9 @@ namespace Tempest
         ScriptEngine* mScriptEngine;
         SceneWindow* mSceneWindow;
         InstanceWindow* mInstanceWindow;
+
+        bool mRenderGraphicsSettingsWindow = false;
+        GraphicsSettingsWindow* mGraphicsSettingsWindow;
 
         InstanceIDTechnique* mInstancePicker;
         uint64_t mSelectedInstance;

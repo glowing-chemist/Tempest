@@ -91,7 +91,8 @@ set(BULLET
 set(TEMPEST_EDITOR_SOURCE
 		Source/Editor/TempestEditor.cpp
 		Source/Editor/SceneWindow.cpp
-		Source/Editor/InstanceWindow.cpp)
+		Source/Editor/InstanceWindow.cpp
+		Source/Editor/GraphicsSettingsWindow.cpp)
 
 add_executable(TEMPEST ${ENGINE_SOURCE} Source/main.cpp ${TEMPEST_EDITOR_SOURCE} ${LUA_SOURCE})
 target_link_libraries(TEMPEST BELL jsoncpp_static ${BULLET})
