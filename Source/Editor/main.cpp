@@ -16,9 +16,14 @@ int main(int argc, char **argv)
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // only resize explicitly
-    auto* window = glfwCreateWindow(1920, 1080, "TempestEditor", nullptr, nullptr);
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    const uint32_t windowWidth = mode->width;
+    const uint32_t windowHeight = mode->height;
+    auto* window = glfwCreateWindow(windowWidth, windowHeight, "TempestEditor", nullptr, nullptr);
 
     auto* editor = new Tempest::Editor(window, workingDirectoy);
 

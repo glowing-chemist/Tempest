@@ -34,6 +34,8 @@ namespace Tempest
 
         Scene* scene = level->getScene();
         MeshInstance* instance = scene->getMeshInstance(id);
+        if(!instance)
+            return true;
         std::string name = instance->getName();
         bool modified = false;
         if(ImGui::Begin(instance->getName().c_str()))
@@ -65,7 +67,8 @@ namespace Tempest
                 ImGui::EndGroup();
             }
 
-            if(!modified) {
+            if(!modified)
+            {
                 float4x4 mat = instance->getTransMatrix();
                 modified = ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(proj), static_cast<ImGuizmo::OPERATION>(entry.mGuizmoIndex),
                                      entry.mGuizmoIndex == 0 ? ImGuizmo::MODE::WORLD : ImGuizmo::MODE::LOCAL,
@@ -176,6 +179,7 @@ namespace Tempest
                     }
                     ImGui::EndCombo();
                 }
+
             }
 
             if(ImGui::Button("Duplicate"))

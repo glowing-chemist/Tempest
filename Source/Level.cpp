@@ -54,8 +54,8 @@ Level::Level(RenderEngine *eng,
 
     }
 
-    mScene->computeBounds(AccelerationStructure::Dynamic);
-    mScene->computeBounds(AccelerationStructure::Static);
+    mScene->computeBounds(AccelerationStructure::DynamicMesh);
+    mScene->computeBounds(AccelerationStructure::StaticMesh);
 }
 
 

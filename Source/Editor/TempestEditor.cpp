@@ -114,8 +114,8 @@ namespace Tempest
 
             if(refitNeeded)
             {
-                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Dynamic);
-                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::Static);
+                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::DynamicMesh);
+                mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::StaticMesh);
             }
 
             ImGui::Render();
@@ -215,11 +215,12 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::DFGGeneration);
         mRenderEngine->registerPass(PassType::Skybox);
         mRenderEngine->registerPass(PassType::ConvolveSkybox);
-        mRenderEngine->registerPass(PassType::Animation);
+        mRenderEngine->registerPass(PassType::ComputeSkinning);
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         mRenderEngine->registerPass(PassType::SSAO);
+        mRenderEngine->registerPass(PassType::TAA);
         mRenderEngine->registerPass(PassType::DebugAABB);
         mRenderEngine->registerPass(PassType::Overlay);
         mRenderEngine->registerPass(PassType::Composite);

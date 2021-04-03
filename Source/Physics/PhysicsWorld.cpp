@@ -5,6 +5,7 @@
 #include "BulletCollision/CollisionShapes/btConcaveShape.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
+#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -144,7 +145,7 @@ void PhysicsWorld::addObject(const InstanceID id,
     btCollisionShape* shape = nullptr;
     if(type == CollisionMeshType::Concave)
     {
-        BELL_TRAP;
+        shape = new btBvhTriangleMeshShape(vertexArray, true);
     }
     else
     {

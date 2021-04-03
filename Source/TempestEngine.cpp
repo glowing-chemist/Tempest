@@ -24,6 +24,9 @@ namespace Tempest
         mScriptEngine->registerPhysicsHooks(mPhysicsEngine);
 
         mRenderEngine->startFrame(std::chrono::microseconds(0));
+
+        // init c rand
+        srand((unsigned)time(0));
     }
 
 
@@ -276,12 +279,12 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::Skybox);
         mRenderEngine->registerPass(PassType::ConvolveSkybox);
         mRenderEngine->registerPass(PassType::Composite);
-        mRenderEngine->registerPass(PassType::Animation);
+        mRenderEngine->registerPass(PassType::ComputeSkinning);
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         mRenderEngine->registerPass(PassType::SSAO);
-        //eng->registerPass(PassType::TAA);
+        mRenderEngine->registerPass(PassType::TAA);
 #ifndef NDEBUG
         mRenderEngine->registerPass(PassType::DebugAABB);
 #endif

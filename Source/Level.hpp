@@ -55,7 +55,7 @@ public:
     {
         const std::string& name = getScene()->getMeshInstance(id)->getName();
 
-        mScene->removeMeshInstance(id);
+        mScene->removeInstance(id);
         mInstanceMapertials.erase(id);
         mInstanceIDs.erase(name);
     }
@@ -64,7 +64,7 @@ public:
     {
         const InstanceID id = mInstanceIDs[name];
 
-        mScene->removeMeshInstance(id);
+        mScene->removeInstance(id);
         mInstanceMapertials.erase(id);
         mInstanceIDs.erase(name);
     }

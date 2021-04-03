@@ -30,6 +30,7 @@ namespace Tempest
                     mCollisionGeom{BasicCollisionGeometry::Box},
                     mMass{0.f},
                     mColliderType{PhysicsEntityType::StaticRigid},
+                    mConcave(false),
                     mRestitution{0.0f} {}
 
             bool mHasScript;
@@ -39,6 +40,7 @@ namespace Tempest
             BasicCollisionGeometry mCollisionGeom;
             float mMass;
             PhysicsEntityType mColliderType;
+            bool mConcave;
             float mRestitution;
 
         };

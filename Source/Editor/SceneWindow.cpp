@@ -431,7 +431,8 @@ namespace Tempest
     {
         mCurrentLevel = l;
         std::vector<std::string> materials = mCurrentLevel->getMaterials();
-        mSelectedMaterial = materials[0];
+        if(!materials.empty())
+            mSelectedMaterial = materials[0];
 
         std::unordered_map<std::string, Camera>& cameras = mCurrentLevel->getCameras();
         for(auto&[name, cam] : cameras)

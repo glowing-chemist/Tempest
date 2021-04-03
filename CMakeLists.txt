@@ -67,14 +67,15 @@ set(LUA_SOURCE
     Source/lua/src/linit.c)
 
 set(ENGINE_SOURCE
-    Source/GamePlay/Player.cpp
-    Source/GamePlay/Controller.cpp
     Source/Graphics/RenderThread.cpp
     Source/Scripting/ScriptEngine.cpp
     Source/Level.cpp
     Source/TempestEngine.cpp
     Source/Physics/PhysicsWorld.cpp
     Source/GamePlay/NavMesh.cpp
+	Source/GamePlay/ScriptEventQueue.cpp
+	Source/GamePlay/Controller.cpp
+	Source/GamePlay/Player.cpp
     Source/Scripting/ScriptableScene.cpp
 	Source/Scripting/ScriptableEngine.cpp
 	Source/Scripting/ScriptableRenderer.cpp)
