@@ -38,6 +38,8 @@ namespace Tempest
         void drawMenuBar();
         void addNewAssets();
 
+        void updateSelectedPhysicsPosition();
+
         bool mFirstFrame = true;
 
         GLFWwindow* mWindow;

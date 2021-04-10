@@ -119,6 +119,9 @@ namespace Tempest
             {
                 mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::DynamicMesh);
                 mCurrentOpenLevel->getScene()->computeBounds(AccelerationStructure::StaticMesh);
+
+                // update the physics engine representation of the selected instance.
+                updateSelectedPhysicsPosition();
             }
 
             ImGui::Render();
@@ -307,6 +310,17 @@ namespace Tempest
             {
                 mCurrentOpenLevel->addMaterialFromFile(asset.path());
             }
+        }
+    }
+
+
+    void Editor::updateSelectedPhysicsPosition()
+    {
+        if(mSelectedInstance != kInvalidInstanceID)
+        {
+            const MeshInstance* instance =  mCurrentOpenLevel->getScene()->getMeshInstance(mSelectedInstance);
+            mPhysicsEngine->setInstancePosition(mSelectedInstance, instance->getPosition());
+            mPhysicsEngine->setInstanceRotation(mSelectedInstance, instance->getRotation());
         }
     }
 }
