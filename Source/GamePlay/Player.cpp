@@ -104,7 +104,7 @@ namespace Tempest
 
             glm::float4x4 rotation = glm::rotate(-0.1f * cx, float3(0.0f, 1.0f, 0.0f)) * glm::rotate(-0.1f * cz, right);
             const float4 positionOffset = float4(
-                    float3((mArmatureLength * direction) + float3(0.0f, mCentralHeight, 0.0f)), 0.0f);
+                    float3((mArmatureLength * direction) + float3(0.0f, -mCentralHeight * 2.0f, 0.0f)), 0.0f);
             position = instancePosition - float3(positionOffset * rotation);
             direction = glm::normalize(float4(direction, 0.0f) * rotation);
 

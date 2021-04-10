@@ -17,7 +17,7 @@ namespace Tempest
     {
         mRenderEngine = new RenderEngine(mWindow);
         mRenderThread = nullptr;
-        mPhysicsEngine = new PhysicsWorld();
+        mPhysicsEngine = new PhysicsWorld(mRenderEngine);
         mScriptEngine = new ScriptEngine();
 
         mScriptEngine->registerEngineHooks(this);
@@ -284,9 +284,9 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
         mRenderEngine->registerPass(PassType::SSAO);
-        mRenderEngine->registerPass(PassType::TAA);
-#ifndef NDEBUG
+        //mRenderEngine->registerPass(PassType::TAA);
+//#ifndef NDEBUG
         mRenderEngine->registerPass(PassType::DebugAABB);
-#endif
+//#endif
     }
 }

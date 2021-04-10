@@ -48,7 +48,7 @@ namespace Tempest
         ImGui::CreateContext();
 
         mRenderEngine = new RenderEngine(mWindow);
-        mPhysicsEngine = new PhysicsWorld();
+        mPhysicsEngine = new PhysicsWorld(mRenderEngine);
         mScriptEngine = new ScriptEngine();
         mSceneWindow = new SceneWindow(&mEditorCamera);
         mInstanceWindow = new InstanceWindow(mRootDir);
@@ -104,6 +104,9 @@ namespace Tempest
             if(!mFirstFrame)
                 mRenderEngine->startFrame(frameDelta);
 
+            if(mSelectedInstance != kInvalidInstanceID)
+                mPhysicsEngine->drawDebugObject(mSelectedInstance);
+
             drawMenuBar();
             bool refitNeeded = mSceneWindow->renderUI();
 
@@ -123,6 +126,8 @@ namespace Tempest
             mRenderEngine->recordScene();
             mRenderEngine->render();
             mRenderEngine->swap();
+
+            mRenderEngine->endFrame();
 
             mFirstFrame = false;
         }

@@ -162,11 +162,11 @@ namespace Tempest
                     ImGui::EndCombo();
                 }
 
-                std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane"};
+                std::string colliderTypes[] = {"Box", "Sphere", "Capsule", "Plane", "Mesh"};
                 const std::string& activeCollider = colliderTypes[static_cast<uint32_t>(entry.mCollisionGeom)];
                 if (ImGui::BeginCombo("Collider", activeCollider.c_str()))
                 {
-                    for (uint32_t n = 0; n < 4; n++)
+                    for (uint32_t n = 0; n < 5; n++)
                     {
                         const std::string& colliderName = colliderTypes[n];
                         bool is_selected = colliderName == activeCollider;

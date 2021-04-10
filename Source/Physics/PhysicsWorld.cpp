@@ -1,11 +1,10 @@
 #include "PhysicsWorld.hpp"
+#include "DebugRenderer.hpp"
+#include "Engine/Engine.hpp"
 
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCapsuleShape.h"
-#include "BulletCollision/CollisionShapes/btConcaveShape.h"
-#include "BulletCollision/CollisionShapes/btConvexShape.h"
-#include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
-#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+#include "BulletCollision/CollisionShapes/btConvexHullShape.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -14,7 +13,8 @@
 namespace Tempest
 {
 
-PhysicsWorld::PhysicsWorld()
+PhysicsWorld::PhysicsWorld(RenderEngine* debugDraw) :
+    mDebugRenderer(debugDraw)
 {
     mCollisionConfig = std::make_unique<btDefaultCollisionConfiguration>();
 
@@ -28,6 +28,8 @@ PhysicsWorld::PhysicsWorld()
 
     mWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
     mWorld->setWorldUserInfo(this);
+    if(debugDraw)
+        mWorld->setDebugDrawer(&mDebugRenderer);
 }
 
 
@@ -117,39 +119,51 @@ void PhysicsWorld::addObject(const InstanceID id,
 }
 
 void PhysicsWorld::addObject(const InstanceID id,
-                             const CollisionMeshType type,
-                             const StaticMesh &collisionGeometry,
+                             const PhysicsEntityType type,
+                             const StaticMesh* collisionGeometry,
                              const float3& pos,
                              const quat& rot,
                              const float3& scale)
 {
-    std::vector<float3> verticies(collisionGeometry.getVertexCount());
-    std::vector<int> indicies{};
-    indicies.reserve(collisionGeometry.getIndexData().size());
-    std::transform(collisionGeometry.getIndexData().begin(), collisionGeometry.getIndexData().end(), std::back_inserter(indicies),
-    [](const uint32_t i) {return static_cast<int>(i);} );
-    const uint32_t stride = collisionGeometry.getVertexStride();
-    const unsigned char* vertexData = collisionGeometry.getVertexData().data();
-    for(uint32_t i = 0; i < verticies.size(); ++i)
-    {
-        const float3* position = reinterpret_cast<const float3*>(vertexData);
-        verticies[i] = *position * scale;
-        vertexData += stride;
-    }
+    btRigidBody* body = nullptr;
+    btCollisionShape* shape;
 
-    btTriangleIndexVertexArray* vertexArray = new btTriangleIndexVertexArray(indicies.size() / 3,
-                                                                            indicies.data(), sizeof(int),
-                                                                            verticies.size(), &verticies.data()->x, sizeof(float3));
-    mCollisionMeshes.push_back(vertexArray);
-
-    btCollisionShape* shape = nullptr;
-    if(type == CollisionMeshType::Concave)
+    auto it = mConvexMeshCache.find(collisionGeometry);
+    if(it != mConvexMeshCache.end())
     {
-        shape = new btBvhTriangleMeshShape(vertexArray, true);
+        const uint32_t shapeIndex = it->second;
+        shape = mCollisionShapes[shapeIndex];
     }
     else
     {
-        shape = new btConvexTriangleMeshShape(vertexArray);
+        const uint32_t stride = collisionGeometry->getVertexStride();
+        const std::vector<SubMesh>& subMeshes = collisionGeometry->getSubMeshes();
+        btCompoundShape* compoundShape = new btCompoundShape(true, subMeshes.size());
+        for(const auto& subMesh : subMeshes)
+        {
+            btConvexHullShape* hullShape = new btConvexHullShape();
+            const unsigned char *vertexData = collisionGeometry->getVertexData().data() + (subMesh.mVertexOffset * stride);
+            for (uint32_t i = 0; i < subMesh.mVertexCount; ++i)
+            {
+                const float4* position = reinterpret_cast<const float4 *>(vertexData);
+                const float4 scaledPosition = (subMesh.mTransform * *position) * float4(scale, 1.0f);
+                hullShape->addPoint(btVector3(scaledPosition.x, scaledPosition.y, scaledPosition.z), false);
+
+                vertexData += stride;
+            }
+            hullShape->recalcLocalAabb();
+
+            mCollisionShapes.push_back(hullShape);
+
+            btTransform subTransform{};
+            subTransform.setIdentity();
+            compoundShape->addChildShape(subTransform, hullShape);
+        }
+        compoundShape->recalculateLocalAabb();
+        mConvexMeshCache.insert({collisionGeometry, mCollisionShapes.size()});
+        mCollisionShapes.push_back(compoundShape);
+
+        shape = compoundShape;
     }
 
     btTransform transform;
@@ -158,18 +172,17 @@ void PhysicsWorld::addObject(const InstanceID id,
     transform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
     btVector3 localInertia = btVector3(0.0f, 0.0f, 0.0f);
-    btDefaultMotionState* myMotionState = new btDefaultMotionState(transform);
+    btDefaultMotionState *myMotionState = new btDefaultMotionState(transform);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, myMotionState, shape, localInertia);
-    btRigidBody* body = new btRigidBody(rbInfo);
+    body = new btRigidBody(rbInfo);
     body->setUserIndex(id);
 
-    if(mFreeRigidBodyIndices.empty())
+    if (mFreeRigidBodyIndices.empty())
     {
         const uint32_t index = mRigidBodies.size();
         mRigidBodies.emplace_back(body);
         mInstanceMap[id] = index;
-    }
-    else
+    } else
     {
         const uint32_t index = mFreeRigidBodyIndices.back();
         mFreeRigidBodyIndices.pop_back();
@@ -205,7 +218,7 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
         {
             case BasicCollisionGeometry::Box:
             {
-                float3 halfExtent = scale / 2.0f;
+                const float3 halfExtent = scale / 2.0f;
                 shape = new btBoxShape(btVector3(halfExtent.x, halfExtent.y, halfExtent.z));
                 break;
             }
@@ -229,7 +242,7 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
             }
         }
 
-        mDefaultShapeCache[{type, scale}] = mCollisionShapes.size();
+        mDefaultShapeCache[{type, scale}] =  mCollisionShapes.size();
         mCollisionShapes.push_back(shape);
     }
 
@@ -239,6 +252,41 @@ btCollisionShape* PhysicsWorld::getCollisionShape(const BasicCollisionGeometry t
 
     return shape;
 }
+
+    void PhysicsWorld::drawDebugAABB(RenderEngine* eng)
+    {
+        for(auto [id, index] : mInstanceMap)
+        {
+            const std::unique_ptr<btRigidBody>& body = mRigidBodies[index];
+            btVector3 min, max;
+            body->getAabb(min, max);
+
+            const AABB bounds({min.x(), min.y(), min.z(), 1.0f},
+                        {max.x(), max.y(), max.z(), 1.0f});
+
+            eng->addDebugAABB(bounds);
+        }
+    }
+
+
+    void PhysicsWorld::drawDebugObjects()
+    {
+        mWorld->debugDrawWorld();
+    }
+
+
+    void PhysicsWorld::drawDebugObject(const InstanceID id)
+    {
+        if(auto it = mInstanceMap.find(id); it != mInstanceMap.end())
+        {
+            const uint32_t rigidIndex = it->second;
+            const std::unique_ptr<btRigidBody> &body = mRigidBodies[rigidIndex];
+            const btCollisionShape *shape = body->getCollisionShape();
+
+            mWorld->debugDrawObject(body->getWorldTransform(), shape, {1.f, 0.0f, 0.0f});
+        }
+    }
+
 
     void PhysicsWorld::setInstancePosition(const InstanceID id, const float3& v)
     {

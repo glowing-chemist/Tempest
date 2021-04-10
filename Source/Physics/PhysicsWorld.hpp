@@ -4,6 +4,7 @@
 #include "btBulletDynamicsCommon.h"
 
 #include "Engine/Scene.h"
+#include "DebugRenderer.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -18,32 +19,27 @@ enum class PhysicsEntityType
     Kinematic
 };
 
-enum class CollisionMeshType
-{
-    Concave,
-    Convex
-};
-
 enum class BasicCollisionGeometry
 {
     Box = 0,
     Sphere,
     Capsule,
-    Plane
+    Plane,
+    Mesh
 };
 
 class PhysicsWorld
 {
 public:
-    PhysicsWorld();
+    PhysicsWorld(RenderEngine* debugDraw);
     ~PhysicsWorld();
 
     void tick(const std::chrono::microseconds diff);
     void updateDynamicObjects(Scene*);
 
     void addObject(const InstanceID id,
-                   const CollisionMeshType,
-                   const StaticMesh& collisionGeometry,
+                   const PhysicsEntityType type,
+                   const StaticMesh* collisionGeometry,
                    const float3& pos,
                    const quat& rot,
                    const float3& scale);
@@ -91,6 +87,10 @@ public:
         float3 mScale;
     };
 
+    void drawDebugAABB(RenderEngine*);
+    void drawDebugObjects();
+    void drawDebugObject(const InstanceID);
+
     void setInstancePosition(const InstanceID, const float3&);
     void translateInstance(const InstanceID, const float3&);
     void setInstanceLinearVelocity(const InstanceID, const float3&);
@@ -110,14 +110,16 @@ private:
     std::unique_ptr<btSequentialImpulseConstraintSolver> mConstraintSolver;
     std::unique_ptr<btDiscreteDynamicsWorld> mWorld;
 
+    std::unordered_map<const StaticMesh*, uint32_t> mConvexMeshCache;
     std::map<DefaultShapeCacheEntry, uint32_t> mDefaultShapeCache;
     btAlignedObjectArray<btCollisionShape*> mCollisionShapes;
-    btAlignedObjectArray<btStridingMeshInterface*> mCollisionMeshes;
 
     std::vector<uint32_t> mFreeRigidBodyIndices;
     std::vector<std::unique_ptr<btRigidBody>> mRigidBodies;
 
     std::unordered_map<InstanceID, uint32_t> mInstanceMap;
+
+    PhysicsWorldDebugRenderer mDebugRenderer;
 };
 
     inline bool operator<(const PhysicsWorld::DefaultShapeCacheEntry& lhs, const PhysicsWorld::DefaultShapeCacheEntry& rhs)

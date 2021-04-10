@@ -225,10 +225,8 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
         if(colliderEntry.isMember("Geometry"))
         {
             const std::string type = colliderEntry["Geometry"].asString();
-            if(type == "MESH")
-            {
-                BELL_TRAP; // TODO
-            }
+            if(type == "Mesh")
+                colliderType = BasicCollisionGeometry::Mesh;
             else if(type == "Capsule")
                 colliderType = BasicCollisionGeometry::Capsule;
             else if(type == "Box")
@@ -293,7 +291,17 @@ void Level::addMeshInstance(const std::string& name, const Json::Value& entry)
             AABB aabb = mesh->getAABB();
             aabb *= glm::mat4_cast(rotation);
             const float3 center = scale * float3(aabb.getCentralPoint());
-            mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass, restitution);
+            if(colliderType == BasicCollisionGeometry::Mesh)
+            {
+                const std::string colliderName = assetName + "_Collider";
+                BELL_ASSERT(mAssetIDs.find(colliderName) != mAssetIDs.end(), "No collider mesh found")
+                const SceneID colliderAsset = mAssetIDs[colliderName];
+                const StaticMesh* colliderMesh = mScene->getMesh(colliderAsset);
+
+                mPhysWorld->addObject(id, entityType, colliderMesh, position, rotation, scale);
+            }
+            else
+                mPhysWorld->addObject(id, entityType, colliderType, position + center, rotation, collisderScale, mass, restitution);
         }
 
         if(mInstanceWindow)

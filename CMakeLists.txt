@@ -72,6 +72,7 @@ set(ENGINE_SOURCE
     Source/Level.cpp
     Source/TempestEngine.cpp
     Source/Physics/PhysicsWorld.cpp
+	Source/Physics/DebugRenderer.cpp
     Source/GamePlay/NavMesh.cpp
 	Source/GamePlay/ScriptEventQueue.cpp
 	Source/GamePlay/Controller.cpp
