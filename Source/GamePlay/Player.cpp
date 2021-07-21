@@ -124,33 +124,24 @@ namespace Tempest
         MeshInstance *instance = mScene->getMeshInstance(mID);
         BELL_ASSERT(instance, "invalid mesh ID")
 
-        const std::vector<RenderEngine::SkeletalAnimationEntry> &activeAnims = eng->getActiveSkeletalAnimations();
-        bool foundAnim = false;
+        bool foundAnim = instance->getActiveAnimation();
 
         const std::vector<Bone> &skeleton = instance->getMesh()->getSkeleton();
-        for (const auto &anim : activeAnims)
+
+        std::vector<float4x4> boneTransforms = instance->tickAnimation(eng->getDevice()->getCurrentSubmissionIndex() / 60.0);
+
+        for (uint32_t i = 0; i < skeleton.size(); ++i)
         {
-            if (anim.mMesh == mID)
-            {
-                foundAnim = true;
+            const Bone &bone = skeleton[i];
+            const float4x4 &transform = boneTransforms[i];
 
-                SkeletalAnimation &animation = instance->getMesh()->getSkeletalAnimation(anim.mName);
-                std::vector<float4x4> boneTransforms = animation.calculateBoneMatracies(*instance->getMesh(),
-                                                                                            anim.mTick);
+            const float4x4 OBBTransformation = instance->getTransMatrix() * transform;
+            const OBB transformedOBB = bone.mOBB * OBBTransformation;
 
-                for (uint32_t i = 0; i < skeleton.size(); ++i) {
-                    const Bone &bone = skeleton[i];
-                    const float4x4 &transform = boneTransforms[i];
-
-                    const float4x4 OBBTransformation = instance->getTransMatrix() * transform;
-                    const OBB transformedOBB = bone.mOBB * OBBTransformation;
-
-                    HitBox &previousHitBox = mHitBoxes[i];
-                    previousHitBox.mVelocity =
-                            transformedOBB.getCentralPoint() - previousHitBox.mOrientatedBoundingBox.getCentralPoint();
-                    previousHitBox.mOrientatedBoundingBox = transformedOBB;
-                }
-            }
+            HitBox &previousHitBox = mHitBoxes[i];
+            previousHitBox.mVelocity =
+                        transformedOBB.getCentralPoint() - previousHitBox.mOrientatedBoundingBox.getCentralPoint();
+                        previousHitBox.mOrientatedBoundingBox = transformedOBB;
         }
 
         if (!foundAnim)

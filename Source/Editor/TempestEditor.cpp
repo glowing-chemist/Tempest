@@ -47,7 +47,7 @@ namespace Tempest
 
         ImGui::CreateContext();
 
-        mRenderEngine = new RenderEngine(mWindow);
+        mRenderEngine = new RenderEngine(mWindow, {DeviceFeaturesFlags::Subgroup | DeviceFeaturesFlags::Compute, true});
         mPhysicsEngine = new PhysicsWorld(mRenderEngine);
         mScriptEngine = new ScriptEngine();
         mSceneWindow = new SceneWindow(&mEditorCamera);
@@ -223,12 +223,11 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::DFGGeneration);
         mRenderEngine->registerPass(PassType::Skybox);
         mRenderEngine->registerPass(PassType::ConvolveSkybox);
-        mRenderEngine->registerPass(PassType::ComputeSkinning);
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);
-        mRenderEngine->registerPass(PassType::SSAO);
-        mRenderEngine->registerPass(PassType::TAA);
+        //mRenderEngine->registerPass(PassType::SSAO);
+        //mRenderEngine->registerPass(PassType::TAA);
         mRenderEngine->registerPass(PassType::DebugAABB);
         mRenderEngine->registerPass(PassType::Overlay);
         mRenderEngine->registerPass(PassType::Composite);

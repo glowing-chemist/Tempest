@@ -15,7 +15,7 @@ namespace Tempest
         mCurrentLevel{nullptr},
         mRootDir(path)
     {
-        mRenderEngine = new RenderEngine(mWindow);
+        mRenderEngine = new RenderEngine(mWindow, {DeviceFeaturesFlags::Compute | DeviceFeaturesFlags::Subgroup, true});
         mRenderThread = nullptr;
         mPhysicsEngine = new PhysicsWorld(mRenderEngine);
         mScriptEngine = new ScriptEngine();
@@ -162,13 +162,13 @@ namespace Tempest
 
     void TempestEngine::startAnimation(const InstanceID id, const std::string& name, const bool loop, const float speedModifer)
     {
-        mRenderEngine->startAnimation(id, name, loop, speedModifer);
+        mRenderEngine->getScene()->getMeshInstance(id)->setActiveAnimation(name, loop);
     }
 
 
     void TempestEngine::terminateAnimation(const InstanceID id, const std::string& name)
     {
-        mRenderEngine->terimateAnimation(id, name);
+        mRenderEngine->getScene()->getMeshInstance(id)->endActiveAnimation();
     }
 
     InstanceID TempestEngine::getInstanceIDByName(const std::string& name) const
@@ -279,7 +279,6 @@ namespace Tempest
         mRenderEngine->registerPass(PassType::Skybox);
         mRenderEngine->registerPass(PassType::ConvolveSkybox);
         mRenderEngine->registerPass(PassType::Composite);
-        mRenderEngine->registerPass(PassType::ComputeSkinning);
         mRenderEngine->registerPass(PassType::LineariseDepth);
         mRenderEngine->registerPass(PassType::LightFroxelation);
         mRenderEngine->registerPass(PassType::DeferredAnalyticalLighting);

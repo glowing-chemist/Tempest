@@ -656,7 +656,7 @@ void Level::addMeshFromFile(const std::filesystem::path& path, const MeshType ty
     StaticMesh mesh(path.string(), VertexAttributes::Position4 | VertexAttributes::Normals | VertexAttributes::Albedo |
                     VertexAttributes::TextureCoordinates | VertexAttributes::Tangents, true);
 
-    const SceneID id = mScene->addMesh(mesh, type);
+    const SceneID id = mScene->addMesh(mRenderEngine, mesh, type);
 
     mAssetNames[id] = path.stem().string();
     mIDToPath[id] = path.string();
